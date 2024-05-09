@@ -10,16 +10,18 @@ import {
 import React, { useState } from "react";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { router } from "expo-router";
+import { FIREBASE_AUTH } from "../FirebaseConfig";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
   const handleLogin = () => {
-    signInWithEmailAndPassword(getAuth(), email, password)
+    signInWithEmailAndPassword(FIREBASE_AUTH, email, password)
       .then((user: any) => {
         if (user)
-          if (getAuth().currentUser!!.displayName!!.substring(0, 3) == "Dr.")
+          console.log(FIREBASE_AUTH.currentUser!!.displayName!!.substring(0, 3))
+          if (FIREBASE_AUTH.currentUser!!.displayName!!.substring(0, 3) == "dr.")
             router.replace("/(dokter)/");
           else router.replace("/(paramedis)/");
       })
@@ -52,9 +54,7 @@ const LoginScreen = () => {
           />
         </View>
         <Pressable
-          onPress={() => {
-            router.replace("/(dokter)/");
-          }}
+          onPress={handleLogin}
           className="bg-[#70E2DF] py-4 flex items-center rounded-xl"
         >
           <Text className="text-lg text-textButton font-bold">Sign In</Text>
