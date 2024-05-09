@@ -5,16 +5,15 @@ import { Tabs, router } from "expo-router";
 const ParamedisLayout = () => {
   FIREBASE_AUTH.onAuthStateChanged((user) => {
     if (!user) {
-      router.replace("../Login");
+      router.replace("../AHMS");
     }
     // if (getAuth().currentUser!!.displayName!!.startsWith("UMKM")) {
     //   router.replace("../(umkm)");
     // }
-
   });
   return (
     <Tabs>
-        <Tabs.Screen name="index"/>
+      <Tabs.Screen name="index" />
     </Tabs>
   );
 };

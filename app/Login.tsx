@@ -1,4 +1,12 @@
-import { View, Text, TextInput, Button, Image, Pressable, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Image,
+  Pressable,
+  ScrollView,
+} from "react-native";
 import React, { useState } from "react";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { router } from "expo-router";
@@ -43,14 +51,15 @@ const LoginScreen = () => {
             className="text-base py-2 border-b-2 border-gray-400"
           />
         </View>
+        <Pressable
+          onPress={() => {
+            router.replace("/(dokter)/");
+          }}
+          className="bg-[#70E2DF] py-4 flex items-center rounded-xl"
+        >
+          <Text className="text-lg text-textButton font-bold">Sign In</Text>
+        </Pressable>
       </View>
-
-      <Pressable
-        onPress={handleLogin}
-        className="bg-mainYellow py-4 flex items-center rounded-xl"
-      >
-        <Text className="text-lg text-textButton font-bold">Sign In</Text>
-      </Pressable>
     </View>
   );
 };

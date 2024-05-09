@@ -23,14 +23,14 @@ const AfterLandingScreen = () => {
         flex: 1,
       }}
     >
-        <View className="flex items-center">
-      <Image
-        source={require("../assets/circle-logo.png")}
-        style={{ width: 150, height: 150, marginTop: 96 }}
-      ></Image>
+      <View className="flex items-center">
+        <Image
+          source={require("../assets/circle-logo.png")}
+          style={{ width: 150, height: 150, marginTop: 56 }}
+        ></Image>
       </View>
 
-      <View className="flex items-center flex-row mt-16 gap-x-4">
+      <View className="flex flex-row justify-between mx-8 mt-12">
         <Pressable
           onPress={() => {
             setIsSignInPressed(true);
@@ -38,7 +38,7 @@ const AfterLandingScreen = () => {
           }}
           style={{
             borderBottomWidth: signInPressed ? 4 : 0,
-            borderBottomColor: signInPressed ? "#F8E800" : "transparent",
+            borderBottomColor: signInPressed ? "#70E2DF" : "transparent",
           }}
           className="py-3 px-12"
         >
@@ -54,7 +54,7 @@ const AfterLandingScreen = () => {
           className="py-3 px-12"
           style={{
             borderBottomWidth: signUpPressed ? 4 : 0,
-            borderBottomColor: signUpPressed ? "#F8E800" : "transparent",
+            borderBottomColor: signUpPressed ? "#70E2DF" : "transparent",
           }}
         >
           <Text className="text-lg text-textButton font-bold">Sign-Up</Text>

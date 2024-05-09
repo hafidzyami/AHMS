@@ -98,14 +98,13 @@ const RegisterScreen = () => {
           <Text className="text-base font-bold">Dokter?</Text>
           <Checkbox value={isChecked} onValueChange={handleCheckBox} />
         </View>
+        <Pressable
+          onPress={handleRegister}
+          className="bg-[#70E2DF] py-4 flex items-center rounded-xl mt-12"
+        >
+          <Text className="text-lg text-textButton font-bold">Sign Up</Text>
+        </Pressable>
       </View>
-
-      <Pressable
-        onPress={handleRegister}
-        className="bg-mainYellow py-4 flex items-center rounded-xl mt-12"
-      >
-        <Text className="text-lg text-textButton font-bold">Sign Up</Text>
-      </Pressable>
     </View>
   );
 };

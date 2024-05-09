@@ -5,16 +5,15 @@ import { Tabs, router } from "expo-router";
 const DokterLayout = () => {
   FIREBASE_AUTH.onAuthStateChanged((user) => {
     if (!user) {
-      router.replace("../AfterLanding");
+      router.replace("../AHMS");
     }
     // if (getAuth().currentUser!!.displayName!!.startsWith("UMKM")) {
     //   router.replace("../(umkm)");
     // }
-
   });
   return (
     <Tabs>
-        <Tabs.Screen name="index"/>
+      <Tabs.Screen name="index" />
     </Tabs>
   );
 };
