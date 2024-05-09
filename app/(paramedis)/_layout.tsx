@@ -1,19 +1,23 @@
-import React from "react";
-import { FIREBASE_AUTH } from "../../FirebaseConfig";
+import React, { useEffect, useState } from "react";
 import { Tabs, router } from "expo-router";
-
+import { getAuth } from "firebase/auth";
+import { Text } from "react-native";
 const ParamedisLayout = () => {
-  FIREBASE_AUTH.onAuthStateChanged((user) => {
-    if (!user) {
-      router.replace("../AHMS");
-    }
-    // if (getAuth().currentUser!!.displayName!!.startsWith("UMKM")) {
-    //   router.replace("../(umkm)");
-    // }
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    getAuth().onAuthStateChanged((user) => {
+      console.log("paramedis:", user)
+      setIsLoading(false);
+      if (!user) {
+        router.replace("../AHMS");
+      }
+    });
+  }, [])
+  if (isLoading) return <Text className="pt-32">Loading...</Text>;
   return (
     <Tabs>
-      <Tabs.Screen name="index" />
+      <Tabs.Screen name="index" options={{ unmountOnBlur: true }}/>
+      <Tabs.Screen name="chat" options={{  unmountOnBlur : true }}/>
     </Tabs>
   );
 };

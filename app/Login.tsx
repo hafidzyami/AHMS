@@ -10,20 +10,22 @@ import {
 import React, { useState } from "react";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { router } from "expo-router";
-import { FIREBASE_AUTH } from "../FirebaseConfig";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
   const handleLogin = () => {
-    signInWithEmailAndPassword(FIREBASE_AUTH, email, password)
+    console.log("kepencet login")
+    signInWithEmailAndPassword(getAuth(), email, password)
       .then((user: any) => {
         if (user)
-          console.log(FIREBASE_AUTH.currentUser!!.displayName!!.substring(0, 3))
-          if (FIREBASE_AUTH.currentUser!!.displayName!!.substring(0, 3) == "dr.")
-            router.replace("/(dokter)/");
-          else router.replace("/(paramedis)/");
+          if(user._tokenResponse.displayName.startsWith("dr.")){
+            router.push("/(dokter)/index")
+          }
+          else{
+            router.push("/(paramedis)/index")
+          }
       })
       .catch((err) => {
         alert(err?.message);

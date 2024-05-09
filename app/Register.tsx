@@ -8,7 +8,6 @@ import {
 import { router } from "expo-router";
 import Checkbox from "expo-checkbox";
 import { arrayUnion, doc, getFirestore, setDoc } from "firebase/firestore";
-import { FIREBASE_AUTH } from "../FirebaseConfig";
 
 const RegisterScreen = () => {
   const [name, setName] = useState<string>("");
@@ -18,20 +17,20 @@ const RegisterScreen = () => {
 
   const handleRegister = async () => {
     try {
-      await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
-      await updateProfile(FIREBASE_AUTH.currentUser!!, {
+      await createUserWithEmailAndPassword(getAuth(), email, password);
+      await updateProfile(getAuth().currentUser!!, {
         displayName: name,
         photoURL: `https://ui-avatars.com/api/?name=${name}&background=F8E800&color=fff&length=1`,
       });
 
       if (name.startsWith("dr. ")) {
         await setDoc(
-          doc(getFirestore(), "dokter", FIREBASE_AUTH.currentUser!!.uid),
+          doc(getFirestore(), "dokter", getAuth().currentUser!!.uid),
           {
-            id: FIREBASE_AUTH.currentUser!!.uid,
-            nama: FIREBASE_AUTH.currentUser!!.displayName,
-            telepon: FIREBASE_AUTH.currentUser!!.phoneNumber,
-            photoURL: FIREBASE_AUTH.currentUser!!.photoURL,
+            id: getAuth().currentUser!!.uid,
+            nama: getAuth().currentUser!!.displayName,
+            telepon: getAuth().currentUser!!.phoneNumber,
+            photoURL: getAuth().currentUser!!.photoURL,
           }
         ).then(() => {
           alert("Berhasil daftar");
@@ -39,11 +38,12 @@ const RegisterScreen = () => {
         });
       } else {
         await setDoc(
-          doc(getFirestore(), "paramedis", FIREBASE_AUTH.currentUser!!.uid),
+          doc(getFirestore(), "paramedis", getAuth().currentUser!!.uid),
           {
-            id: FIREBASE_AUTH.currentUser!!.uid,
-            nama: FIREBASE_AUTH.currentUser!!.displayName,
-            telepon: FIREBASE_AUTH.currentUser!!.phoneNumber,
+            id: getAuth().currentUser!!.uid,
+            nama: getAuth().currentUser!!.displayName,
+            telepon: getAuth().currentUser!!.phoneNumber,
+            photoURL: getAuth().currentUser!!.photoURL,
           }
         ).then(() => {
           alert("Berhasil daftar");
