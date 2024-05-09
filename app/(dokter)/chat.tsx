@@ -9,9 +9,11 @@ import {
   Image,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { collection, doc, getDocs, getFirestore, onSnapshot, orderBy, query } from "firebase/firestore";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { getRoomId } from "../../utils/common";
+import { getAuth } from "firebase/auth";
 
 const chat = () => {
   const [users, setUsers] = useState<any>();
@@ -41,7 +43,7 @@ const chat = () => {
     fetchParamedis();
   }, []);
 
-  const renderUsersItem = (item: any) => {
+  const renderUsersItem = (item: any) => {    
     return (
       <TouchableOpacity
         className="flex flex-row justify-between mx-4 item-centers gap-3 pb-2"
@@ -51,7 +53,9 @@ const chat = () => {
         <View className="flex-1 gap-1">
           <View>
             <Text>{item.item.nama}</Text>
+            <Text>Last Message</Text>
           </View>
+          <Text>Time</Text>
         </View>
       </TouchableOpacity>
     );

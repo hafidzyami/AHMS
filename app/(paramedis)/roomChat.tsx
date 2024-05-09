@@ -25,7 +25,8 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-const chatRoom = () => {
+
+const roomChat = () => {
   const params = useLocalSearchParams(); //second user
   const router = useRouter();
   const [messages, setMessages] = useState<any>([]);
@@ -108,4 +109,4 @@ const chatRoom = () => {
   );
 };
 
-export default chatRoom;
+export default roomChat;

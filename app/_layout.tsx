@@ -1,4 +1,4 @@
-;
+import "react-native-reanimated";
 import { Stack } from "expo-router";
 import { initializeApp } from "firebase/app";
 import {initializeAuth, getReactNativePersistence, getAuth} from "firebase/auth";
@@ -23,7 +23,6 @@ initializeAuth(FIREBASE_APP,{
 const FIRETORE_DB = getFirestore(FIREBASE_APP)
 
 const AppLayout = () => {  
-  console.log(getAuth().currentUser)
   return (
     <Stack>
       <Stack.Screen name="(dokter)" options={{headerShown: false}}/>

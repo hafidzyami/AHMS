@@ -1,3 +1,4 @@
+import "react-native-reanimated";
 import React, { useEffect, useState } from "react";
 import { Tabs, router } from "expo-router";
 import { getAuth } from "firebase/auth";
@@ -6,7 +7,6 @@ const ParamedisLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     getAuth().onAuthStateChanged((user) => {
-      console.log("paramedis:", user)
       setIsLoading(false);
       if (!user) {
         router.replace("../AHMS");

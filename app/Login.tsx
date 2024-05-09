@@ -16,15 +16,14 @@ const LoginScreen = () => {
   const [password, setPassword] = useState<string>("");
 
   const handleLogin = () => {
-    console.log("kepencet login")
     signInWithEmailAndPassword(getAuth(), email, password)
       .then((user: any) => {
         if (user)
           if(user._tokenResponse.displayName.startsWith("dr.")){
-            router.push("/(dokter)/index")
+            router.push("/(dokter)/")
           }
           else{
-            router.push("/(paramedis)/index")
+            router.push("/(paramedis)/")
           }
       })
       .catch((err) => {
