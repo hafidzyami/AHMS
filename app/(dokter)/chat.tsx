@@ -9,11 +9,10 @@ import {
   Image,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { collection, doc, getDocs, getFirestore, onSnapshot, orderBy, query } from "firebase/firestore";
+import { collection, getDocs, getFirestore } from "firebase/firestore";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { getRoomId } from "../../utils/common";
-import { getAuth } from "firebase/auth";
+import ChatList from "../../components/ChatList";
 
 const chat = () => {
   const [users, setUsers] = useState<any>();
@@ -43,23 +42,7 @@ const chat = () => {
     fetchParamedis();
   }, []);
 
-  const renderUsersItem = (item: any) => {    
-    return (
-      <TouchableOpacity
-        className="flex flex-row justify-between mx-4 item-centers gap-3 pb-2"
-        onPress={() => router.push({pathname : "/chatRoom", params : item.item})}
-      >
-        <Image source={{ uri: item.item.photoURL }} height={75} width={75} />
-        <View className="flex-1 gap-1">
-          <View>
-            <Text>{item.item.nama}</Text>
-            <Text>Last Message</Text>
-          </View>
-          <Text>Time</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+
   return (
     <View>
       {users ? (
@@ -70,14 +53,7 @@ const chat = () => {
             }
           >
             <Text> Daftar Paramedis : </Text>
-            <FlatList
-              key={"#"}
-              data={users}
-              renderItem={renderUsersItem}
-              keyExtractor={(item) => item.id}
-              nestedScrollEnabled={true}
-              scrollEnabled={false}
-            />
+            <ChatList users={users} />
           </ScrollView>
         </SafeAreaView>
       ) : (
