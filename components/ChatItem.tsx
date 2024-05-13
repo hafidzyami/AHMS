@@ -54,15 +54,21 @@ const ChatItem = (user: any) => {
       ).slice(-2)}/${("0" + (date.getMonth() + 1)).slice(
         -2
       )}/${date.getFullYear()}`;
-    }
-    else{
-      return "Loading..."
+    } else {
+      return "Loading...";
     }
   };
   return (
     <TouchableOpacity
       className="flex flex-row justify-between mx-4 item-centers gap-3 pb-2"
-      onPress={() => router.push({ pathname: "/chatRoom", params: user.user })}
+      onPress={() =>
+        router.push({
+          pathname: getAuth().currentUser?.displayName?.startsWith("dr.")
+            ? "./chatRoom"
+            : "./roomChat",
+          params: user.user,
+        })
+      }
     >
       <Image source={{ uri: user.user.photoURL }} height={75} width={75} />
       <View className="flex-1 gap-1">
