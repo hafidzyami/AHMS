@@ -13,7 +13,7 @@ const MessageItem = (message: any) => {
           marginRight: 3,
         }}
       >
-        <View style={{ width: 80 }}>
+        <View style={{ maxWidth: "70%" }}>
           <View
             style={{
               alignSelf: "flex-end",
@@ -31,7 +31,7 @@ const MessageItem = (message: any) => {
     );
   } else {
     return (
-      <View style={{ width: 80, marginLeft: 3, marginBottom: 3 }}>
+      <View style={{ maxWidth: "70%", marginLeft: 3, marginBottom: 3 }}>
         <View
           style={{
             padding: 10,

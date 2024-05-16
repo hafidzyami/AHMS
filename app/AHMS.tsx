@@ -30,7 +30,7 @@ const AfterLandingScreen = () => {
         ></Image>
       </View>
 
-      <View className="mt-12">
+      <View className="mt-12 flex flex-row justify-between mx-8">
         <TouchableOpacity
           onPress={() => {
             setIsSignInPressed(true);
@@ -42,9 +42,7 @@ const AfterLandingScreen = () => {
           }}
           className="py-3 px-12"
         >
-          <Text className="text-lg text-textButton font-bold flex items-center">
-            Sign-In
-          </Text>
+          <Text className="text-lg text-textButton font-bold">Sign-In</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
