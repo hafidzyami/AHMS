@@ -7,8 +7,6 @@ import {
   ScrollView,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { getAuth, signOut } from "firebase/auth";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import DropDownPicker from "react-native-dropdown-picker";
 
 const patientdata = () => {
