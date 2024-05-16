@@ -1,211 +1,129 @@
 import {
   View,
   Text,
-  Button,
-  TouchableOpacity,
   Image,
-  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
 } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { getAuth, signOut } from "firebase/auth";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import DropDownPicker from "react-native-dropdown-picker";
 
-const index = () => {
+const patientdata = () => {
+  const [fullName, setFullName] = useState<string>("");
+  const [age, setAge] = useState<any>(0);
+  const [gender, setGender] = useState<string>("");
+  const [height, setHeight] = useState<any>();
+  const [weight, setWeight] = useState<any>();
+  const [bmi, setBmi] = useState<any>();
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState([
+    { label: "Male", value: "Male" },
+    { label: "Female", value: "Female" },
+  ]);
+
+  useEffect(() => {
+    calculateBMI();
+  }, [height, weight]);
+
+  const calculateBMI = () => {
+    if (height && weight) {
+      const heightInMeters = parseFloat(height) / 100; // converting cm to meters
+      const weightInKg = parseFloat(weight);
+
+      const bmiValue = (weightInKg / (heightInMeters * heightInMeters)).toFixed(
+        2
+      );
+      setBmi(bmiValue);
+    } else {
+      setBmi("");
+    }
+  };
   return (
     <View className="mt-8">
-      <View className="flex flex-row justify-end bg-[#62C1BF]/30 h-[40px] px-4">
-        <TouchableOpacity
-          onPress={() => signOut(getAuth())}
-          className="self-center"
-        >
-          <FontAwesome size={28} name="sign-out" color="black" />
-        </TouchableOpacity>
+      <View className="mt-8 flex flex-row items-center justify-between px-7">
+        <Text className="font-extrabold text-xl">Fill Patient Data</Text>
+        <Image
+          source={require("../../assets/circle-logo.png")}
+          style={{ width: 80, height: 80 }}
+        ></Image>
       </View>
-      <View className="pt-8 px-4 bg-[#62C1BF]/30 h-full">
-        <View className="flex flex-row justify-between">
-          <Text className="px-1 text-4xl font-bold w-3/4 tracking-wide">
-            Welcome to AHMS
-          </Text>
-          <Image
-            source={require("../../assets/circle-logo.png")}
-            style={{ width: 70, height: 70, marginTop: 0 }}
-          ></Image>
+      <View className=" px-7 gap-5">
+        <View>
+          <Text className="text-base">Fullname</Text>
+          <TextInput
+            placeholder="name"
+            onChangeText={(text) => setFullName(text)}
+            value={fullName}
+            className="text-base py-2 border-b-2 border-gray-400"
+          />
         </View>
-        <View style={styles.heartRate} className="mt-6">
-          <View className="flex flex-row h-full">
-            <View className="mx-4">
-              <View className="flex flex-row mt-4">
-                <Image
-                  source={require("../../assets/mdi_heart-outline.png")}
-                  style={{ width: 30, height: 30, marginTop: 0 }}
-                ></Image>
-                <Text className="mx-2 text-xl font-medium text-[#ff0000] self-center">
-                  Heart Rate
-                </Text>
-              </View>
-              <View className="flex flex-row mt-4">
-                <Text className="mx-2 text-6xl font-bold text-[#ff0000] self-center">
-                  --{/* BPM */}
-                </Text>
-                <Text className="mx-2 text-lg font-normal text-[#ff0000] self-end">
-                  bpm
-                </Text>
-              </View>
-            </View>
-            <View className="mx-auto self-center">
-              <Image
-                source={require("../../assets/Vector 1.png")}
-                style={{ width: 130, height: 108.7, marginTop: 0 }}
-              ></Image>
-            </View>
-          </View>
+        <View>
+          <Text className="text-base">Age</Text>
+          <TextInput
+            placeholder="age"
+            keyboardType="number-pad"
+            onChangeText={(text) => setAge(text)}
+            value={age}
+            className="text-base py-2 border-b-2 border-gray-400"
+          />
         </View>
-        <View className="flex flex-row justify-between">
-          <View style={styles.spo2} className="mt-4">
-            <View className="flex flex-row mt-4 mx-4">
-              <Image
-                source={require("../../assets/spo2.png")}
-                style={{ width: 28, height: 28, marginTop: 0 }}
-              ></Image>
-              <Text style={[styles.spo2Text, styles.spo2Typo]} className="mx-2">
-                <Text style={styles.s}>S</Text>
-                <Text style={styles.p}>p</Text>
-                <Text style={styles.s}>O</Text>
-                <Text style={styles.p}>2</Text>
-              </Text>
-            </View>
-            <View className="flex flex-row mt-4 mx-4">
-              <Text className="ml-2 text-6xl font-bold text-[#0500ff] self-center">
-                --{/* SpO2 */}
-              </Text>
-              <Text className="ml-1 text-5xl font-normal text-[#0500ff] self-center">
-                %
-              </Text>
-            </View>
-          </View>
-          <View style={styles.temperature} className="mt-4">
-            <View className="flex flex-row mt-4 mx-4">
-              <Image
-                source={require("../../assets/temperatur.png")}
-                style={{ width: 14.3, height: 28, marginTop: 0 }}
-              ></Image>
-              <Text className="mx-2 text-xl font-medium text-[#ff7a00] self-center">
-                Temperature
-              </Text>
-            </View>
-            <View className="flex flex-row mt-4 mx-4">
-              <Text className="ml-2 text-6xl font-bold text-[#ff7a00] self-center">
-                --{/* Suhu */}
-              </Text>
-              <Text className="ml-1 text-5xl font-normal text-[#ff7a00] self-center">
-                °C
-              </Text>
-            </View>
-          </View>
+        <View>
+          <Text className="text-base">Height (cm)</Text>
+          <TextInput
+            placeholder="cm"
+            keyboardType="decimal-pad"
+            onChangeText={(text) => setHeight(text)}
+            value={height}
+            className="text-base py-2 border-b-2 border-gray-400"
+          />
         </View>
-        <View style={styles.condition} className="mt-4">
-          <View className="flex flex-row justify-between mx-4 h-full">
-            <View>
-              <View className="flex flex-row mt-4">
-                <Image
-                  source={require("../../assets/Vector.png")}
-                  style={{ width: 28, height: 28, marginTop: 0 }}
-                ></Image>
-                <Text className="mx-3 text-2xl font-medium text-[#9747ff] self-center">
-                  Condition
-                </Text>
-              </View>
-              <View className="flex flex-row mt-4">
-                <Text className="text-6xl font-bold text-[#9747ff] self-center">
-                  --{/* Condition */}
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              onPress={() => {}}
-              className="my-3 w-1/2 h-[35px] bg-[#9747ff] flex flex-col justify-center rounded-xl self-end"
-            >
-              <Text className="text-lg text-textButton font-semibold text-center text-white">
-                Contact Doctor
-              </Text>
-            </TouchableOpacity>
-          </View>
+        <View>
+          <Text className="text-base">Weight (kg)</Text>
+          <TextInput
+            placeholder="kg"
+            keyboardType="decimal-pad"
+            onChangeText={(text) => setWeight(text)}
+            value={weight}
+            className="text-base py-2 border-b-2 border-gray-400"
+          />
         </View>
+        <View>
+          <Text className="text-base">BMI</Text>
+          <TextInput
+            placeholder="Auto-generated, please fill Height and Weight"
+            editable={false}
+            value={bmi}
+            className="text-base py-2 border-b-2 border-gray-400"
+          />
+        </View>
+        <View>
+          <Text className="text-base mb-2">Gender</Text>
+          <DropDownPicker
+            placeholder="Choose Gender!"
+            open={open}
+            value={gender}
+            items={items}
+            setOpen={setOpen}
+            setValue={setGender}
+            setItems={setItems}
+            zIndex={1000}
+            zIndexInverse={1000}
+          />
+        </View>
+      </View>
+      <View className="px-7 mt-8">
+        <TouchableOpacity
+          onPress={() => {}}
+          className="bg-[#70E2DF] py-4 flex items-center rounded-xl"
+        >
+          <Text className="text-textButton font-bold">Save</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 };
-const styles = StyleSheet.create({
-  heartRate: {
-    shadowColor: "rgba(0, 0, 0, 0.25)",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowRadius: 4,
-    elevation: 4,
-    shadowOpacity: 1,
-    borderRadius: 10,
-    backgroundColor: "#ffeaea",
-    width: "100%",
-    height: 150,
-  },
-  spo2: {
-    shadowColor: "rgba(0, 0, 0, 0.25)",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowRadius: 4,
-    elevation: 4,
-    shadowOpacity: 1,
-    borderRadius: 10,
-    backgroundColor: "#b8fbff",
-    width: "48%",
-    height: 150,
-  },
-  temperature: {
-    shadowColor: "rgba(0, 0, 0, 0.25)",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowRadius: 4,
-    elevation: 4,
-    shadowOpacity: 1,
-    borderRadius: 10,
-    backgroundColor: "#f9ffb6",
-    width: "48%",
-    height: 150,
-  },
-  s: {
-    fontSize: 24,
-  },
-  p: {
-    fontSize: 16,
-  },
-  spo2Text: {
-    width: 112,
-  },
-  spo2Typo: {
-    textAlign: "left",
-    color: "#0500ff",
-    fontWeight: "500",
-  },
-  condition: {
-    shadowColor: "rgba(0, 0, 0, 0.25)",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowRadius: 4,
-    elevation: 4,
-    shadowOpacity: 1,
-    borderRadius: 10,
-    backgroundColor: "#febaff",
-    width: "100%",
-    height: 170,
-  },
-});
 
-export default index;
+export default patientdata;

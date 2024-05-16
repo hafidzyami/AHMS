@@ -4,7 +4,7 @@ import { Tabs, router } from "expo-router";
 import { getAuth } from "firebase/auth";
 import { Text } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 const ParamedisLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
@@ -21,11 +21,22 @@ const ParamedisLayout = () => {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: "Patient Data",
+          headerShown: false,
+          unmountOnBlur: false,
+          tabBarIcon: ({ color }) => (
+            <FontAwesome size={28} name="clipboard" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="condition"
+        options={{
+          title: "Condition",
           headerShown: false,
           unmountOnBlur: true,
           tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="home" color={color} />
+            <MaterialIcons name="bloodtype" size={24} color={color} />
           ),
         }}
       />
@@ -45,12 +56,6 @@ const ParamedisLayout = () => {
         options={{
           href: null,
           unmountOnBlur: true,
-        }}
-      />
-      <Tabs.Screen
-        name="tes"
-        options={{
-          href: null,
         }}
       />
     </Tabs>

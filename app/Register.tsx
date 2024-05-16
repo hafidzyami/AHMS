@@ -1,4 +1,4 @@
-import { View, Text, TextInput, Button, Pressable } from "react-native";
+import { View, Text, TextInput, Button, Pressable, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 import {
   createUserWithEmailAndPassword,
@@ -99,12 +99,12 @@ const RegisterScreen = () => {
           <Text className="text-base font-bold">Dokter?</Text>
           <Checkbox value={isChecked} onValueChange={handleCheckBox} />
         </View>
-        <Pressable
+        <TouchableOpacity
           onPress={handleRegister}
           className="bg-[#70E2DF] py-4 flex items-center rounded-xl mt-12"
         >
           <Text className="text-lg text-textButton font-bold">Sign Up</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
     </View>
   );
