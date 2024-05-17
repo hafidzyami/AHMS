@@ -6,11 +6,49 @@ import {
   Image,
   StyleSheet,
 } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { getAuth, signOut } from "firebase/auth";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import Paho from "paho-mqtt";
+
+const client = new Paho.Client("broker.hivemq.com", Number(8000), `ahmshafidz`);
 
 const index = () => {
+  const [data, setData] = useState<any>("");
+
+  useEffect(() => {
+    client.onConnectionLost = (responseObject) => {
+      if (responseObject.errorCode !== 0) {
+        console.log("Connection lost:", responseObject.errorMessage);
+        client.disconnect();
+        client.connect(connectOptions);
+      }
+    };
+
+    client.onMessageArrived = (message) => {
+      if (message.destinationName === "ahms") {
+        const data = `${message.payloadString}`;
+        setData(data)
+      }
+    };
+
+    const connectOptions = {
+      onSuccess: () => {
+        console.log("Connected!");
+        client.subscribe("ahms");
+      },
+      onFailure: () => {
+        console.log("Failed to connect!");
+      },
+    };
+
+    client.connect(connectOptions);
+
+    return () => {
+      client.disconnect();
+    };
+  }, []);
+
   return (
     <View className="mt-8">
       <View className="flex flex-row justify-end bg-[#62C1BF]/30 h-[40px] px-4">
@@ -44,8 +82,8 @@ const index = () => {
                 </Text>
               </View>
               <View className="flex flex-row mt-4">
-                <Text className="mx-2 text-6xl font-bold text-[#ff0000] self-center">
-                  --{/* BPM */}
+                <Text className="mx-2 text-4xl font-bold text-[#ff0000] self-center">
+                  {data === "" ? "---" : data}
                 </Text>
                 <Text className="mx-2 text-lg font-normal text-[#ff0000] self-end">
                   bpm
@@ -75,10 +113,10 @@ const index = () => {
               </Text>
             </View>
             <View className="flex flex-row mt-4 mx-4">
-              <Text className="ml-2 text-6xl font-bold text-[#0500ff] self-center">
-                --{/* SpO2 */}
+              <Text className="ml-2 text-4xl font-bold text-[#0500ff] self-center">
+                {data === "" ? "---" : data}
               </Text>
-              <Text className="ml-1 text-5xl font-normal text-[#0500ff] self-center">
+              <Text className="ml-1 text-4xl font-normal text-[#0500ff] self-center">
                 %
               </Text>
             </View>
@@ -94,10 +132,10 @@ const index = () => {
               </Text>
             </View>
             <View className="flex flex-row mt-4 mx-4">
-              <Text className="ml-2 text-6xl font-bold text-[#ff7a00] self-center">
-                --{/* Suhu */}
+              <Text className="ml-2 text-4xl font-bold text-[#ff7a00] self-center">
+                {data === "" ? "---" : data}
               </Text>
-              <Text className="ml-1 text-5xl font-normal text-[#ff7a00] self-center">
+              <Text className="ml-1 text-4xl font-normal text-[#ff7a00] self-center">
                 °C
               </Text>
             </View>

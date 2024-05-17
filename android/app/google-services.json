@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "604557704284",
+    "project_id": "ahms-a493d",
+    "storage_bucket": "ahms-a493d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:604557704284:android:24f01affd567ea7ee67a99",
+        "android_client_info": {
+          "package_name": "com.hafidzbandung.AHMS"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDe9Fz7IIjGjnGzExzvuL_Wl84G-Kd_q1c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
