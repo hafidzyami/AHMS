@@ -23,7 +23,7 @@ const ParamedisLayout = () => {
         options={{
           title: "Patient Data",
           headerShown: false,
-          unmountOnBlur: false,
+          unmountOnBlur: true,
           tabBarIcon: ({ color }) => (
             <FontAwesome size={28} name="clipboard" color={color} />
           ),

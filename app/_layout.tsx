@@ -10,17 +10,17 @@ import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 import { getFirestore, initializeFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_API_KEY,
-  authDomain: process.env.EXPO_PUBLIC_AUTH_DOMAIN,
-  databaseURL: process.env.EXPO_PUBLIC_DATABASE_URL,
-  projectId: process.env.EXPO_PUBLIC_PROJECT_ID,
-  storageBucket: process.env.EXPO_PUBLIC_STORAGE_BUCKET,
-  messagingSenderId: process.env.EXPO_PUBLIC_MESSAGING_SENDER_ID,
-  appId: process.env.EXPO_PUBLIC_APP_ID,
-  measurementId: process.env.EXPO_PUBLIC_MEASUREMENT_ID,
+  apiKey: "AIzaSyB89VBU-mgv8RgUNxkXIG-TN5OkRpmPrOo",
+  authDomain: "ahms-a493d.firebaseapp.com",
+  databaseURL: "https://ahms-a493d-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ahms-a493d",
+  storageBucket: "ahms-a493d.appspot.com",
+  messagingSenderId: "604557704284",
+  appId: "1:604557704284:web:a3c615e4f207ebade67a99",
+  measurementId: "G-RX4J4PHS5T"
 };
 
-const FIREBASE_APP = initializeApp(firebaseConfig);
+export const FIREBASE_APP = initializeApp(firebaseConfig);
 initializeAuth(FIREBASE_APP, {
   persistence: getReactNativePersistence(ReactNativeAsyncStorage),
 });

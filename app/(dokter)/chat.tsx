@@ -4,14 +4,10 @@ import {
   ActivityIndicator,
   ScrollView,
   RefreshControl,
-  FlatList,
-  TouchableOpacity,
-  Image,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { collection, getDocs, getFirestore } from "firebase/firestore";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import ChatList from "../../components/ChatList";
 
 const chat = () => {

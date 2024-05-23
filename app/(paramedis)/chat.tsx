@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   ScrollView,
   RefreshControl,
-  FlatList,
   TouchableOpacity,
   Image,
 } from "react-native";
@@ -14,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { getAuth, signOut } from "firebase/auth";
+import ChatList from "../../components/ChatList";
 
 const chat = () => {
   const [users, setUsers] = useState<any>();
@@ -80,14 +80,15 @@ const chat = () => {
               }
             >
               <Text> Daftar Dokter : </Text>
-              <FlatList
+              <ChatList users={users} />
+              {/* <FlatList
                 key={"#"}
                 data={users}
                 renderItem={renderUsersItem}
                 keyExtractor={(item) => item.id}
                 nestedScrollEnabled={true}
                 scrollEnabled={false}
-              />
+              /> */}
             </ScrollView>
           </SafeAreaView>
         ) : (

@@ -79,7 +79,7 @@ const roomChat = () => {
     <CustomKeyboardView inChat={true}>
       <View className="flex-1 bg-white">
         <StatusBar style="dark" />
-        <ChatRoomHeader user={params} router={router} />
+        <ChatRoomHeader photoURL={params.photoURL} nama={params.nama} router={router} />
         <View className="h-3 border-b border-neutral-200"></View>
         <View className="flex-1 justify-between bg-neutral-100 overflow-visible">
           <View className="flex-1">

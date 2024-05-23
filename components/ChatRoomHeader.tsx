@@ -4,8 +4,7 @@ import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const ChatRoomHeader = ({ user, router }: any) => {
-  const name = `${user.nama}`;
+const ChatRoomHeader = ({ photoURL, nama, router }: any) => {
   return (
     <Stack.Screen
       options={{
@@ -29,12 +28,12 @@ const ChatRoomHeader = ({ user, router }: any) => {
             </TouchableOpacity>
 
             <Image
-              source={{ uri: user.photoURL }}
+              source={{ uri: photoURL }}
               height={50}
               width={50}
               borderRadius={50}
             />
-            <Text className="text-xl font-bold">D{name.substring(1)}</Text>
+            <Text className="text-xl font-bold">{nama}</Text>
           </View>
         ),
       }}
