@@ -22,9 +22,9 @@ const client = new Paho.Client(
 const index = () => {
   const [data, setData] = useState<any>("");
   const [hasContact, setHasContact] = useState<boolean>(false);
-  const [idParamedis, setIdParamedis] = useState<any>("")
-  const [namaParamedis, setNamaParamedis] = useState<any>("")
-  const [photoURLParamedis, setPhotoURLParamedis] = useState<any>("")
+  const [idParamedis, setIdParamedis] = useState<any>("");
+  const [namaParamedis, setNamaParamedis] = useState<any>("");
+  const [photoURLParamedis, setPhotoURLParamedis] = useState<any>("");
   const checkContact = async () => {
     try {
       const docRef = doc(getFirestore(), "notif", "daftar");
@@ -33,9 +33,9 @@ const index = () => {
         docSnap.exists() &&
         docSnap.data().idDokter === getAuth().currentUser?.uid
       ) {
-        setIdParamedis(docSnap.data().idParamedis)
-        setNamaParamedis(docSnap.data().namaParamedis)
-        setPhotoURLParamedis(docSnap.data().photoURLParamedis)
+        setIdParamedis(docSnap.data().idParamedis);
+        setNamaParamedis(docSnap.data().namaParamedis);
+        setPhotoURLParamedis(docSnap.data().photoURLParamedis);
         setHasContact(true);
       }
     } catch (error) {
@@ -56,7 +56,7 @@ const index = () => {
     client.onMessageArrived = (message) => {
       if (message.destinationName === "ahms") {
         const data = `${message.payloadString}`;
-        setData(data);
+        setData(JSON.parse(data));
       }
     };
 
@@ -111,7 +111,7 @@ const index = () => {
               </View>
               <View className="flex flex-row mt-4">
                 <Text className="mx-2 text-4xl font-bold text-[#ff0000] self-center">
-                  {data === "" ? "---" : data}
+                  {data === "" ? "---" : data.heart}
                 </Text>
                 <Text className="mx-2 text-lg font-normal text-[#ff0000] self-end">
                   bpm
@@ -142,7 +142,7 @@ const index = () => {
             </View>
             <View className="flex flex-row mt-4 mx-4">
               <Text className="ml-2 text-4xl font-bold text-[#0500ff] self-center">
-                {data === "" ? "---" : data}
+                {data === "" ? "---" : data.o2}
               </Text>
               <Text className="ml-1 text-4xl font-normal text-[#0500ff] self-center">
                 %
@@ -161,7 +161,7 @@ const index = () => {
             </View>
             <View className="flex flex-row mt-4 mx-4">
               <Text className="ml-2 text-4xl font-bold text-[#ff7a00] self-center">
-                {data === "" ? "---" : data}
+                {data === "" ? "---" : data.temperature}
               </Text>
               <Text className="ml-1 text-4xl font-normal text-[#ff7a00] self-center">
                 °C
@@ -170,7 +170,7 @@ const index = () => {
           </View>
         </View>
         <View style={styles.condition} className="mt-4">
-          <View className="flex flex-row justify-between mx-4 h-full">
+          <View className="flex flex-col justify-between mx-4 h-full">
             <View>
               <View className="flex flex-row mt-4">
                 <Image
@@ -182,23 +182,40 @@ const index = () => {
                 </Text>
               </View>
               <View className="flex flex-row mt-4">
-                <Text className="text-6xl font-bold text-[#9747ff] self-center">
-                  --{/* Condition */}
+                <Text
+                  className={`${data === "" ? "text-6xl" : "text-xl"} ${
+                    data.condition ===
+                    "Terdeteksi urgent, segera hubungi dokter!"
+                      ? "text-[#ff0000]"
+                      : "text-[#9747ff]"
+                  } font-bold self-center`}
+                >
+                  {data === "" ? "---" : data.condition}
                 </Text>
               </View>
             </View>
-            {hasContact && (<TouchableOpacity
-              onPress={() => {router.push({pathname : "./chatRoom", params : {id : idParamedis, nama : namaParamedis, photoURL : photoURLParamedis} })}}
-              className="my-3 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
-            >
-              <Text
-                className="text-lg text-textButton font-semibold text-center text-white"
-                style={{ marginTop: 2 }}
+            {hasContact && (
+              <TouchableOpacity
+                onPress={() => {
+                  router.push({
+                    pathname: "./chatRoom",
+                    params: {
+                      id: idParamedis,
+                      nama: namaParamedis,
+                      photoURL: photoURLParamedis,
+                    },
+                  });
+                }}
+                className="mb-4 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
               >
-                Go To Chat
-              </Text>
-            </TouchableOpacity>)}
-            
+                <Text
+                  className="text-lg text-textButton font-semibold text-center text-white"
+                  style={{ marginTop: 2 }}
+                >
+                  Go To Chat
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>

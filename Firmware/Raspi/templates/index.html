@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Raspberry Pi Live Video Feed</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      h1 {
+        text-align: center;
+      }
+      img {
+        display: block;
+        margin: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h1>AHMS Live Camera</h1>
+      <img id="bg" src="{{ url_for('video_feed') }}">
+    </div>
+  </body>
+</html>

@@ -5,9 +5,11 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Keyboard,
+  Image,
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import ChatRoomHeader from "../../components/ChatRoomHeader";
 import MessageList from "../../components/MessageList";
@@ -25,13 +27,21 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { WebView } from "react-native-webview";
+import { Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const roomChat = () => {
+const chatRoom = () => {
   const params = useLocalSearchParams(); //second user
   const router = useRouter();
   const [messages, setMessages] = useState<any>([]);
   const textRef = useRef("");
   const inputRef = useRef<any>(null);
+  const scrollViewRef = useRef<any>(null);
+  const [showVideo, setShowVideo] = useState(false);
+
+  console.log("params : ", params);
+
   useEffect(() => {
     createRoomIfNotExists();
     let roomId = getRoomId(getAuth().currentUser?.uid, params.id);
@@ -44,8 +54,29 @@ const roomChat = () => {
       });
       setMessages([...allMessages]);
     });
+
+    const KeyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      updateScrollView
+    );
+
+    return () => {
+      unsub();
+      KeyboardDidShowListener.remove();
+    };
+
     return unsub;
   }, []);
+
+  useEffect(() => {
+    updateScrollView();
+  }, [messages]);
+
+  const updateScrollView = () => {
+    setTimeout(() => {
+      scrollViewRef?.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
 
   const createRoomIfNotExists = async () => {
     let roomId = getRoomId(getAuth().currentUser?.uid, params.id);
@@ -79,13 +110,57 @@ const roomChat = () => {
     <CustomKeyboardView inChat={true}>
       <View className="flex-1 bg-white">
         <StatusBar style="dark" />
-        <ChatRoomHeader photoURL={params.photoURL} nama={params.nama} router={router} />
+        <Stack.Screen
+          options={{
+            title: "",
+            headerShadowVisible: false,
+            headerRight: () => (
+              <View className="flex flex-row items-center gap-x-4">
+                <TouchableOpacity onPress={() => setShowVideo(!showVideo)}>
+                  <MaterialCommunityIcons
+                    name="video-outline"
+                    size={45}
+                    color="green"
+                  />
+                </TouchableOpacity>
+              </View>
+            ),
+            headerLeft: () => (
+              <View className="flex flex-row items-center gap-x-4">
+                <TouchableOpacity onPress={() => router.back()}>
+                  <Ionicons name="chevron-back" size={24} color="black" />
+                </TouchableOpacity>
+
+                <Image
+                  source={{
+                    uri:
+                      typeof params.photoURL === "string"
+                        ? params.photoURL
+                        : "",
+                  }}
+                  height={50}
+                  width={50}
+                  borderRadius={50}
+                />
+                <Text className="text-xl font-bold">{params.nama}</Text>
+              </View>
+            ),
+          }}
+        />
+        {showVideo && (
+          <View className="flex-1" style={{ height: 200 }}>
+            <WebView
+              source={{ uri: "http://192.168.0.134:80" }}
+            />
+          </View>
+        )}
+
         <View className="h-3 border-b border-neutral-200"></View>
         <View className="flex-1 justify-between bg-neutral-100 overflow-visible">
           <View className="flex-1">
-            <MessageList messages={messages} />
+            <MessageList messages={messages} scrollViewRef={scrollViewRef} />
           </View>
-          <View style={{ marginBottom: 20 }} className="pt-2">
+          <View style={{ marginBottom: 60 }} className="pt-2">
             <View className="flex-row justify-between items-center mx-3">
               <View className="flex-row justify-between bg-white border p-2 border-neutral-300 rounded-full pl-5">
                 <TextInput
@@ -109,4 +184,4 @@ const roomChat = () => {
   );
 };
 
-export default roomChat;
+export default chatRoom;

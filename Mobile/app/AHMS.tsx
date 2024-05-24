@@ -30,7 +30,7 @@ const AfterLandingScreen = () => {
         ></Image>
       </View>
 
-      <View className="mt-12 flex flex-row justify-between mx-8">
+      <View className="mt-12 flex flex-row justify-center">
         <TouchableOpacity
           onPress={() => {
             setIsSignInPressed(true);

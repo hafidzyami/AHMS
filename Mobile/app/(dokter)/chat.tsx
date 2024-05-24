@@ -5,15 +5,13 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
-  Image,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { collection, getDocs, getFirestore } from "firebase/firestore";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { getAuth, signOut } from "firebase/auth";
 import ChatList from "../../components/ChatList";
+import { getAuth, signOut } from "firebase/auth";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 const chat = () => {
   const [users, setUsers] = useState<any>();
@@ -27,7 +25,7 @@ const chat = () => {
 
   const fetchParamedis = async () => {
     try {
-      const paramedisRef = collection(getFirestore(), "dokter"); // Reference to the Firestore collection
+      const paramedisRef = collection(getFirestore(), "paramedis"); // Reference to the Firestore collection
       const snapshot = await getDocs(paramedisRef); // Get all documents from the collection
       const documentData = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -43,27 +41,10 @@ const chat = () => {
     fetchParamedis();
   }, []);
 
-  const renderUsersItem = (item: any) => {
-    return (
-      <TouchableOpacity
-        className="flex flex-row justify-between mx-4 item-centers gap-3 pb-2"
-        onPress={() =>
-          router.push({ pathname: "/roomChat", params: item.item })
-        }
-      >
-        <Image source={{ uri: item.item.photoURL }} height={75} width={75} />
-        <View className="flex-1 gap-1">
-          <View>
-            <Text>{item.item.nama}</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
   return (
     <View className="mt-8">
-      <View className="flex flex-row justify-between border-b-2 border-slate-400 bg-[#62C1BF]/80 h-[40px] px-4">
-        <Text className="text-xl font-bold self-center">Chat</Text>
+      <View className="flex flex-row justify-between border-b-2 border-slate-400 bg-white h-[40px] px-4">
+        <Text className="text-xl font-bold mx-auto self-center">Chat</Text>
         <TouchableOpacity
           onPress={() => signOut(getAuth())}
           className="self-center"
@@ -71,7 +52,7 @@ const chat = () => {
           <FontAwesome size={28} name="sign-out" color="black" />
         </TouchableOpacity>
       </View>
-      <View className="pt-4 px-4 bg-[#62C1BF]/30 h-full">
+      <View className="pt-4 px-4 bg-[#fff] h-full">
         {users ? (
           <SafeAreaView>
             <ScrollView
@@ -79,7 +60,7 @@ const chat = () => {
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
               }
             >
-              <Text> Daftar Dokter : </Text>
+              <Text className="text-lg font-bold"> Daftar Paramedis : </Text>
               <ChatList users={users} />
               {/* <FlatList
                 key={"#"}

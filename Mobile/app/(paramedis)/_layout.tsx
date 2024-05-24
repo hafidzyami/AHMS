@@ -17,7 +17,7 @@ const ParamedisLayout = () => {
   }, []);
   if (isLoading) return <Text className="pt-32">Loading...</Text>;
   return (
-    <Tabs>
+    <Tabs screenOptions={{ tabBarHideOnKeyboard : true, tabBarStyle : {position : 'absolute'}}}>
       <Tabs.Screen
         name="index"
         options={{

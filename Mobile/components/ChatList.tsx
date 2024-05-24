@@ -12,6 +12,7 @@ const ChatList = (users: any) => {
           keyExtractor={(item) => item.id}
           nestedScrollEnabled={true}
           scrollEnabled={false}
+          
         />
   );
 };

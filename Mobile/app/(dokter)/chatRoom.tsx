@@ -150,7 +150,7 @@ const chatRoom = () => {
         {showVideo && (
           <View className="flex-1" style={{ height: 200 }}>
             <WebView
-              source={{ uri: "https://assuring-frog-simple.ngrok-free.app/" }}
+              source={{ uri: "http://192.168.0.134:80" }}
             />
           </View>
         )}
@@ -160,7 +160,7 @@ const chatRoom = () => {
           <View className="flex-1">
             <MessageList messages={messages} scrollViewRef={scrollViewRef} />
           </View>
-          <View style={{ marginBottom: 20 }} className="pt-2">
+          <View style={{ marginBottom: 60 }} className="pt-2">
             <View className="flex-row justify-between items-center mx-3">
               <View className="flex-row justify-between bg-white border p-2 border-neutral-300 rounded-full pl-5">
                 <TextInput

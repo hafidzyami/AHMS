@@ -1,4 +1,9 @@
-import { View, Text, TextInput, Button, Pressable, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import React, { useState } from "react";
 import {
   createUserWithEmailAndPassword,
@@ -7,7 +12,7 @@ import {
 } from "firebase/auth";
 import { router } from "expo-router";
 import Checkbox from "expo-checkbox";
-import { arrayUnion, doc, getFirestore, setDoc } from "firebase/firestore";
+import {doc, getFirestore, setDoc } from "firebase/firestore";
 
 const RegisterScreen = () => {
   const [name, setName] = useState<string>("");
@@ -65,48 +70,48 @@ const RegisterScreen = () => {
   };
 
   return (
-    <View className="flex flex-col gap-y-20 ">
-      <View className="flex flex-col gap-y-4">
-        <View>
-          <Text className="text-base">Fullname</Text>
-          <TextInput
-            placeholder="name"
-            onChangeText={(text) => setName(text)}
-            value={name}
-            className="text-base py-2 border-b-2 border-gray-400"
-          />
+      <View className="flex flex-col gap-y-20">
+        <View className="flex flex-col gap-y-4">
+          <View>
+            <Text className="text-base">Fullname</Text>
+            <TextInput
+              placeholder="name"
+              onChangeText={(text) => setName(text)}
+              value={name}
+              className="text-base py-2 border-b-2 border-gray-400"
+            />
+          </View>
+          <View>
+            <Text className="text-base">Email Address</Text>
+            <TextInput
+              placeholder="username@gmail.com"
+              keyboardType="email-address"
+              onChangeText={(text) => setEmail(text)}
+              value={email}
+              className="text-base py-2 border-b-2 border-gray-400"
+            />
+          </View>
+          <View>
+            <Text className="text-base">Password</Text>
+            <TextInput
+              placeholder="********"
+              secureTextEntry
+              onChangeText={(text) => setPassword(text)}
+              className="text-base py-2 border-b-2 border-gray-400"
+            />
+          </View>
+          <View className="flex flex-row gap-x-4 items-center">
+            <Text className="text-base font-bold">Dokter?</Text>
+            <Checkbox value={isChecked} onValueChange={handleCheckBox} />
+          </View>
+          <TouchableOpacity
+            onPress={handleRegister}
+            className="bg-[#70E2DF] py-4 flex items-center rounded-xl mt-12"
+          >
+            <Text className="text-lg text-textButton font-bold">Sign Up</Text>
+          </TouchableOpacity>
         </View>
-        <View>
-          <Text className="text-base">Email Address</Text>
-          <TextInput
-            placeholder="username@gmail.com"
-            keyboardType="email-address"
-            onChangeText={(text) => setEmail(text)}
-            value={email}
-            className="text-base py-2 border-b-2 border-gray-400"
-          />
-        </View>
-        <View>
-          <Text className="text-base">Password</Text>
-          <TextInput
-            placeholder="********"
-            secureTextEntry
-            onChangeText={(text) => setPassword(text)}
-            className="text-base py-2 border-b-2 border-gray-400"
-          />
-        </View>
-        <View className="flex flex-row gap-x-4 items-center">
-          <Text className="text-base font-bold">Dokter?</Text>
-          <Checkbox value={isChecked} onValueChange={handleCheckBox} />
-        </View>
-        <TouchableOpacity
-          onPress={handleRegister}
-          className="bg-[#70E2DF] py-4 flex items-center rounded-xl mt-12"
-        >
-          <Text className="text-lg text-textButton font-bold">Sign Up</Text>
-        </TouchableOpacity>
       </View>
-    </View>
   );
 };
 

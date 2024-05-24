@@ -10,7 +10,13 @@ import React, { useEffect, useState } from "react";
 import { getAuth, signOut } from "firebase/auth";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Paho from "paho-mqtt";
-import { doc, getDoc, getFirestore, setDoc, updateDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { router } from "expo-router";
 
 const index = () => {
@@ -18,9 +24,9 @@ const index = () => {
   const [mqttConnect, setMqttConnect] = useState<boolean>(true);
   const [hasContact, setHasContact] = useState<any>(0);
 
-  const [idDokter, setIdDokter] = useState("")
-  const [namaDokter, setNamaDokter] = useState("")
-  const [photoURLDokter, setPhotoURLDokter] = useState("")
+  const [idDokter, setIdDokter] = useState("");
+  const [namaDokter, setNamaDokter] = useState("");
+  const [photoURLDokter, setPhotoURLDokter] = useState("");
 
   const handleContactDoctor = async () => {
     try {
@@ -28,27 +34,23 @@ const index = () => {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         // TODO : BACKEND
-        // try {
-        //   const response = await fetch("http://192.168.18.9:8000/sample", {
-        //     method: "POST",
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify({
-        //       idParamedis: getAuth().currentUser?.uid,
-        //       namaParamedis: getAuth().currentUser?.displayName,
-        //     }),
-        //   });
-        // } catch (error) {
-        //   console.error("Error:", error);
-        //   // Handle network error
-        // }
+        try {
+          const response = await fetch("http://192.168.0.139:8000/sample", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+        } catch (error) {
+          console.error("Error:", error);
+          // Handle network error
+        }
         try {
           const docRef = doc(getFirestore(), "notif", "daftar");
           setDoc(docRef, {
             idParamedis: getAuth().currentUser?.uid,
             namaParamedis: getAuth().currentUser?.displayName,
-            photoURLParamedis : getAuth().currentUser?.photoURL
+            photoURLParamedis: getAuth().currentUser?.photoURL,
           });
           setHasContact(1);
         } catch (errorLagi) {
@@ -79,9 +81,9 @@ const index = () => {
         docSnap.data().idParamedis === getAuth().currentUser?.uid &&
         docSnap.data().hasOwnProperty("idDokter")
       ) {
-        setNamaDokter(docSnap.data().namaDokter)
-        setIdDokter(docSnap.data().idDokter)
-        setPhotoURLDokter(docSnap.data().photoURLDokter)
+        setNamaDokter(docSnap.data().namaDokter);
+        setIdDokter(docSnap.data().idDokter);
+        setPhotoURLDokter(docSnap.data().photoURLDokter);
         setHasContact(2);
       }
     } catch (error) {
@@ -89,7 +91,7 @@ const index = () => {
     }
   };
 
-  console.log(hasContact)
+  console.log(data);
 
   useEffect(() => {
     checkContact();
@@ -234,7 +236,7 @@ const index = () => {
               </View>
             </View>
             <View style={styles.condition} className="mt-4">
-              <View className="flex flex-row justify-between mx-4 h-full">
+              <View className="flex flex-col justify-between mx-4 h-full">
                 <View>
                   <View className="flex flex-row mt-4">
                     <Image
@@ -246,15 +248,17 @@ const index = () => {
                     </Text>
                   </View>
                   <View className="flex flex-row mt-4">
-                    <Text className="text-6xl font-bold text-[#9747ff] self-center">
-                      --{/* Condition */}
+                    <Text className={`${data === "" ? "text-6xl" : "text-xl"} ${data.condition === "Terdeteksi urgent, segera hubungi dokter!" ? "text-[#ff0000]" : "text-[#9747ff]"} font-bold self-center`}>
+                      {data === "" ? "---" : data.condition}
                     </Text>
                   </View>
                 </View>
+                <View>
                 {hasContact === 0 || hasContact === 1 ? (
+                
                   <TouchableOpacity
                     onPress={handleContactDoctor}
-                    className="my-3 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
+                    className="mb-4 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
                   >
                     <Text
                       className="text-lg text-textButton font-semibold text-center text-white"
@@ -271,12 +275,20 @@ const index = () => {
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
-                    onPress={() => {router.push({pathname : "./roomChat", params : {id : idDokter, photoURL : photoURLDokter, nama : namaDokter}})}}
-                    className="my-3 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
+                    onPress={() => {
+                      router.push({
+                        pathname: "./roomChat",
+                        params: {
+                          id: idDokter,
+                          photoURL: photoURLDokter,
+                          nama: namaDokter,
+                        },
+                      });
+                    }}
+                    className="mb-4 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
                   >
                     <Text
                       className="text-lg text-textButton font-semibold text-center text-white"
-                      style={{ marginTop: 2 }}
                     >
                       Go To Chat
                     </Text>
@@ -288,6 +300,7 @@ const index = () => {
                     )}
                   </TouchableOpacity>
                 )}
+                </View>
               </View>
             </View>
           </View>

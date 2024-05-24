@@ -24,7 +24,7 @@ const DokterLayout = () => {
   }, [])
   if (isLoading) return <Text className="pt-32">Loading...</Text>;
   return (
-    <Tabs>
+    <Tabs screenOptions={{ tabBarHideOnKeyboard : true, tabBarStyle : {position : 'absolute'}}}>
       <Tabs.Screen
         name="index"
         options={{
@@ -41,7 +41,7 @@ const DokterLayout = () => {
         options={{
           title: "Condition",
           headerShown: false,
-          unmountOnBlur: false,
+          unmountOnBlur: true,
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="bloodtype" size={24} color={color} />
           ),

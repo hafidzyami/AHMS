@@ -55,12 +55,12 @@ const ChatItem = (user: any) => {
         -2
       )}/${date.getFullYear()}`;
     } else {
-      return "Loading...";
+      return "";
     }
   };
   return (
     <TouchableOpacity
-      className="flex flex-row justify-between mx-4 item-centers gap-3 pb-2"
+      className="flex flex-row justify-between mx-4 item-centers gap-3 pb-2 mt-2 border-b-[1px]"
       onPress={() =>
         router.push({
           pathname: getAuth().currentUser?.displayName?.startsWith("dr.")
@@ -70,10 +70,10 @@ const ChatItem = (user: any) => {
         })
       }
     >
-      <Image source={{ uri: user.user.photoURL }} height={75} width={75} />
-      <View className="flex-1 gap-1">
+      <Image source={{ uri: user.user.photoURL }} height={75} width={75} className="rounded-[100px]"/>
+      <View className="flex-1 gap-1 justify-center">
         <View>
-          <Text>{user.user.nama}</Text>
+          <Text className="text-lg font-bold">{user.user.nama}</Text>
           <Text>{renderLastMessage()}</Text>
         </View>
         <Text>{renderLastTime()}</Text>
