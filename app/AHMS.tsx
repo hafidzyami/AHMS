@@ -1,0 +1,68 @@
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Image,
+  Pressable,
+  ScrollView,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import React, { useState } from "react";
+import LoginScreen from "./Login";
+import RegisterScreen from "./Register";
+
+const AfterLandingScreen = () => {
+  const [signInPressed, setIsSignInPressed] = useState<boolean>(true);
+  const [signUpPressed, setIsSignUpPressed] = useState<boolean>(false);
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS == "ios" ? "padding" : undefined}
+      style={{ flex: 1 }}
+    >
+      <View className="flex items-center">
+        <Image
+          source={require("../assets/circle-logo.png")}
+          style={{ width: 150, height: 150, marginTop: 56 }}
+        ></Image>
+      </View>
+
+      <View className="mt-12 flex flex-row justify-center">
+        <TouchableOpacity
+          onPress={() => {
+            setIsSignInPressed(true);
+            setIsSignUpPressed(false);
+          }}
+          style={{
+            borderBottomWidth: signInPressed ? 4 : 0,
+            borderBottomColor: signInPressed ? "#70E2DF" : "transparent",
+          }}
+          className="py-3 px-12"
+        >
+          <Text className="text-lg text-textButton font-bold">Sign-In</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            setIsSignInPressed(false);
+            setIsSignUpPressed(true);
+          }}
+          className="py-3 px-12"
+          style={{
+            borderBottomWidth: signUpPressed ? 4 : 0,
+            borderBottomColor: signUpPressed ? "#70E2DF" : "transparent",
+          }}
+        >
+          <Text className="text-lg text-textButton font-bold">Sign-Up</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View className="self-stretch mt-4 mx-8">
+        {signInPressed ? <LoginScreen /> : <RegisterScreen />}
+      </View>
+    </KeyboardAvoidingView>
+  );
+};
+
+export default AfterLandingScreen;
