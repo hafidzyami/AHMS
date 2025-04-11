@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Text,
   View,
-  Button,
   Platform,
   Image,
   TextInput,
@@ -13,7 +12,6 @@ import {
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
-import DropDownPicker from "react-native-dropdown-picker";
 import { doc, getDoc, getFirestore, updateDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
@@ -94,6 +92,29 @@ async function registerForPushNotificationsAsync() {
     }
   } else {
     handleRegistrationError("Must use physical device for push notifications");
+  }
+}
+
+async function registerTokenWithBackend(token: string) {
+  try {
+    const response = await fetch("https://astanibackend2-763033978430.asia-southeast2.run.app/addToken", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log("Token registered with backend:", result);
+    return result;
+  } catch (error) {
+    console.error("Error registering token with backend:", error);
+    // Handle error silently to not disrupt the app
   }
 }
 
@@ -203,7 +224,16 @@ export default function App() {
   useEffect(() => {
     checkNotif();
     registerForPushNotificationsAsync()
-      .then((token) => setExpoPushToken(token ?? ""))
+      .then((token) => {
+        if (token) {
+          setExpoPushToken(token);
+          registerTokenWithBackend(token)
+          .then(() => console.log("Token successfully registered with backend"))
+          .catch((error) => console.error("Failed to register token with backend:", error));
+        } else {
+          setExpoPushToken("");
+        }
+      })
       .catch((error: any) => setExpoPushToken(`${error}`));
 
     notificationListener.current =

@@ -40,6 +40,9 @@
         }
       ]
     ],
+    "experiments": {
+      "newArchEnabled": true
+    },
     "scheme": "ahms",
     "extra": {
       "router": {

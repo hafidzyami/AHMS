@@ -103,8 +103,8 @@ const index = () => {
   useEffect(() => {
     checkContact();
     const client = new Paho.Client(
-      "broker.hivemq.com",
-      Number(8000),
+      "mqtt.eclipseprojects.io",
+      Number(80),
       `ahmshafidzparamedis`
     );
     client.onConnectionLost = (responseObject) => {

@@ -30,7 +30,7 @@ const DokterLayout = () => {
         options={{
           title: "Patient Data",
           headerShown: false,
-          unmountOnBlur: true,
+          // unmountOnBlur: true,
           tabBarIcon: ({ color }) => (
             <FontAwesome size={28} name="clipboard" color={color} />
           ),
@@ -41,7 +41,7 @@ const DokterLayout = () => {
         options={{
           title: "Condition",
           headerShown: false,
-          unmountOnBlur: true,
+          // unmountOnBlur: true,
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="bloodtype" size={24} color={color} />
           ),
@@ -52,7 +52,7 @@ const DokterLayout = () => {
         options={{
           title: "Chat",
           headerShown: false,
-          unmountOnBlur: true,
+          // unmountOnBlur: true,
           tabBarIcon: ({ color }) => (
             <FontAwesome size={24} name="wechat" color={color} />
           ),
@@ -62,7 +62,7 @@ const DokterLayout = () => {
         name="chatRoom"
         options={{
           href: null,
-          unmountOnBlur: true,
+          // unmountOnBlur: true,
         }}
       />
     </Tabs>

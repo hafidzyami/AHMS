@@ -23,7 +23,7 @@ const ParamedisLayout = () => {
         options={{
           title: "Patient Data",
           headerShown: false,
-          unmountOnBlur: true,
+          // unmountOnBlur: true,
           tabBarIcon: ({ color }) => (
             <FontAwesome size={28} name="clipboard" color={color} />
           ),
@@ -34,7 +34,7 @@ const ParamedisLayout = () => {
         options={{
           title: "Condition",
           headerShown: false,
-          unmountOnBlur: true,
+          // unmountOnBlur: true,
           tabBarIcon: ({ color }) => (
             <MaterialIcons name="bloodtype" size={24} color={color} />
           ),
@@ -45,7 +45,7 @@ const ParamedisLayout = () => {
         options={{
           title: "Chat",
           headerShown: false,
-          unmountOnBlur: true,
+          // unmountOnBlur: true,
           tabBarIcon: ({ color }) => (
             <FontAwesome size={24} name="wechat" color={color} />
           ),
@@ -55,7 +55,7 @@ const ParamedisLayout = () => {
         name="roomChat"
         options={{
           href: null,
-          unmountOnBlur: true,
+          // unmountOnBlur: true,
         }}
       />
     </Tabs>

@@ -174,7 +174,7 @@ const chatRoom = () => {
         />
         {showVideo && (
           <View className="flex-1" style={{ height: 200 }}>
-            <WebView source={{ uri: `http://${ipAddress}` }} />
+            <WebView source={{ uri: `${ipAddress}` }} />
           </View>
         )}
 
