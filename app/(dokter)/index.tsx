@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  RefreshControl, // Import RefreshControl
 } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
@@ -129,6 +130,7 @@ export default function App() {
   const [nik, setNik] = useState<any>("");
 
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false); // Add refreshing state
   const [expoPushToken, setExpoPushToken] = useState("");
   const [notification, setNotification] = useState<
     Notifications.Notification | undefined
@@ -160,6 +162,7 @@ export default function App() {
                 idDokter: getAuth().currentUser?.uid,
                 namaDokter: getAuth().currentUser?.displayName,
                 photoURLDokter: getAuth().currentUser?.photoURL,
+                hasContact: 2
               });
               setIdParamedis(docSnap.data().idParamedis);
             },
@@ -178,6 +181,13 @@ export default function App() {
       setLoading(false);
     }
   };
+
+  // Add onRefresh function
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    checkNotif()
+      .finally(() => setRefreshing(false));
+  }, []);
 
   useEffect(() => {
     if (idParamedis) {
@@ -257,7 +267,12 @@ export default function App() {
   }, []);
 
   return (
-    <ScrollView className="mt-8 mb-16">
+    <ScrollView 
+      className="mt-8 mb-16"
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <View className="mt-8 flex flex-row items-center justify-between px-7">
         <Text className="font-extrabold text-xl">Patient Data</Text>
         <Image

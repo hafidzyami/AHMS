@@ -6,8 +6,10 @@ import {
   StyleSheet,
   ActivityIndicator,
   Pressable,
+  ScrollView,     // Add ScrollView
+  RefreshControl, // Add RefreshControl
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react"; // Add useCallback
 import { getAuth, signOut } from "firebase/auth";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Paho from "paho-mqtt";
@@ -24,6 +26,7 @@ const index = () => {
   const [data, setData] = useState<any>("");
   const [mqttConnect, setMqttConnect] = useState<boolean>(true);
   const [hasContact, setHasContact] = useState<any>(0);
+  const [refreshing, setRefreshing] = useState(false); // Add refreshing state
 
   const [idDokter, setIdDokter] = useState("");
   const [namaDokter, setNamaDokter] = useState("");
@@ -75,6 +78,7 @@ const index = () => {
 
   const checkContact = async () => {
     try {
+      console.log("Checking contact status...");
       const docRef = doc(getFirestore(), "notif", "daftar");
       const docSnap = await getDoc(docRef);
       if (
@@ -92,57 +96,139 @@ const index = () => {
         setIdDokter(docSnap.data().idDokter);
         setPhotoURLDokter(docSnap.data().photoURLDokter);
         setHasContact(2);
+      } else {
+        // Reset status if no matching contact data found
+        setHasContact(0);
       }
     } catch (error) {
+      console.error("Error checking contact:", error);
       alert(error);
     }
   };
+
+  // Add onRefresh function
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    
+    // Perform the refresh actions
+    checkContact()
+      .finally(() => {
+        setRefreshing(false);
+        console.log("Refresh completed");
+      });
+  }, []);
 
   console.log(data);
 
   useEffect(() => {
     checkContact();
+    let reconnectCount = 0;
+    const maxReconnects = 5;
+    let reconnectTimer : any = null;
+    let isConnecting = false;
+    
+    // Create client with unique ID (adding timestamp to prevent conflicts)
+    const clientId = `ahmshafidzparamedis_${Date.now()}`;
     const client = new Paho.Client(
       "mqtt.eclipseprojects.io",
       Number(80),
-      `ahmshafidzparamedis`
+      clientId
     );
-    client.onConnectionLost = (responseObject) => {
-      if (responseObject.errorCode !== 0) {
-        console.log("Connection lost:", responseObject.errorMessage);
-        client.disconnect();
-        client.connect(connectOptions);
-      }
-    };
-
-    client.onMessageArrived = (message) => {
-      if (message.destinationName === "ahms") {
-        const data = `${message.payloadString}`;
-        setData(JSON.parse(data));
-      }
-    };
-
+    
+    // Define connection options
     const connectOptions = {
       onSuccess: () => {
-        console.log("Connected!");
+        console.log("MQTT Connected successfully!");
+        isConnecting = false;
+        reconnectCount = 0;
         setMqttConnect(false);
-        client.subscribe("ahms");
+        try {
+          client.subscribe("ahms");
+        } catch (error) {
+          console.error("Error subscribing to topic:", error);
+        }
       },
-      onFailure: () => {
-        console.log("Failed to connect!");
-        client.disconnect();
+      onFailure: (err : any) => {
+        console.log("MQTT Connection failed:", err.errorMessage);
+        isConnecting = false;
+        handleReconnect();
       },
     };
-
-    client.connect(connectOptions);
-
+    
+    // Handle connection loss
+    client.onConnectionLost = (responseObject) => {
+      isConnecting = false;
+      setMqttConnect(true);
+      if (responseObject.errorCode !== 0) {
+        console.log("MQTT Connection lost:", responseObject.errorMessage);
+        handleReconnect();
+      }
+    };
+    
+    // Handle reconnection with backoff
+    const handleReconnect = () => {
+      if (reconnectCount < maxReconnects && !isConnecting) {
+        reconnectCount++;
+        const delay = Math.min(1000 * reconnectCount, 5000); // Exponential backoff up to 5 seconds
+        
+        console.log(`MQTT Reconnecting attempt ${reconnectCount} in ${delay}ms`);
+        
+        if (reconnectTimer) clearTimeout(reconnectTimer);
+        
+        reconnectTimer = setTimeout(() => {
+          if (!isConnecting) {
+            isConnecting = true;
+            try {
+              client.connect(connectOptions);
+            } catch (e) {
+              console.error("MQTT Reconnect error:", e);
+              isConnecting = false;
+            }
+          }
+        }, delay);
+      } else if (reconnectCount >= maxReconnects) {
+        console.log("MQTT Max reconnection attempts reached");
+        setMqttConnect(false); // Show error UI instead of loading
+      }
+    };
+    
+    // Handle incoming messages
+    client.onMessageArrived = (message) => {
+      if (message.destinationName === "ahms") {
+        try {
+          const data = `${message.payloadString}`;
+          setData(JSON.parse(data));
+        } catch (error) {
+          console.error("Error parsing MQTT message:", error);
+        }
+      }
+    };
+    
+    // Initial connection
+    try {
+      isConnecting = true;
+      client.connect(connectOptions);
+    } catch (error) {
+      console.error("Initial MQTT connection error:", error);
+      isConnecting = false;
+      handleReconnect();
+    }
+    
+    // Cleanup
     return () => {
-      client.disconnect();
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      try {
+        if (client && client.isConnected && client.isConnected()) {
+          client.disconnect();
+        }
+      } catch (error) {
+        console.error("Error during MQTT cleanup:", error);
+      }
     };
   }, []);
 
   return (
-    <View className="mt-8">
+    <View className="mt-8 flex-1">
       <View className="flex flex-row justify-end bg-[#62C1BF]/30 h-[40px] px-4">
         <TouchableOpacity
           onPress={() => signOut(getAuth())}
@@ -151,194 +237,212 @@ const index = () => {
           <FontAwesome size={28} name="sign-out" color="black" />
         </TouchableOpacity>
       </View>
-      <View className="pt-8 px-4 bg-[#62C1BF]/30 h-full">
-        <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
-          <View className="flex flex-row justify-between">
-            <Text className="px-1 text-4xl font-bold w-3/4 tracking-wide">
-              Welcome to AHMS
-            </Text>
-            <Image
-              source={require("../../assets/circle-logo.png")}
-              style={{ width: 70, height: 70, marginTop: 0 }}
-            ></Image>
-          </View>
-        </Pressable>
-        {mqttConnect === true ? (
-          <ActivityIndicator size="large" />
-        ) : (
-          <View>
-            <View style={styles.heartRate} className="mt-6">
-              <View className="flex flex-row h-full">
-                <View className="mx-4">
-                  <View className="flex flex-row mt-4">
-                    <Image
-                      source={require("../../assets/mdi_heart-outline.png")}
-                      style={{ width: 30, height: 30, marginTop: 0 }}
-                    ></Image>
-                    <Text className="mx-2 text-xl font-medium text-[#ff0000] self-center">
-                      Heart Rate
-                    </Text>
-                  </View>
-                  <View className="flex flex-row mt-4">
-                    <Text className="mx-2 text-4xl font-bold text-[#ff0000] self-center">
-                      {data === "" || data.temperature < 30
-                        ? "---"
-                        : data.heart}
-                    </Text>
-                    <Text className="mx-2 text-lg font-normal text-[#ff0000] self-end">
-                      bpm
-                    </Text>
-                  </View>
-                </View>
-                <View className="mx-auto self-center">
-                  <Pressable onPress={() => setFlag(!flag)}>
-                    <Image
-                      source={require("../../assets/Vector 1.png")}
-                      style={{ width: 130, height: 108.7, marginTop: 0 }}
-                    ></Image>
-                  </Pressable>
-                </View>
-              </View>
-            </View>
+      
+      {/* Wrap content in ScrollView with RefreshControl */}
+      <ScrollView 
+        className="flex-1"
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            colors={["#62C1BF"]} // Android
+            tintColor="#62C1BF"  // iOS
+          />
+        }
+      >
+        <View className="pt-8 px-4 bg-[#62C1BF]/30 h-full">
+          <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
             <View className="flex flex-row justify-between">
-              <View style={styles.spo2} className="mt-4">
-                <View className="flex flex-row mt-4 mx-4">
-                  <Image
-                    source={require("../../assets/spo2.png")}
-                    style={{ width: 28, height: 28, marginTop: 0 }}
-                  ></Image>
-                  <Text
-                    style={[styles.spo2Text, styles.spo2Typo]}
-                    className="mx-2"
-                  >
-                    <Text style={styles.s}>S</Text>
-                    <Text style={styles.p}>p</Text>
-                    <Text style={styles.s}>O</Text>
-                    <Text style={styles.p}>2</Text>
-                  </Text>
-                </View>
-                <View className="flex flex-row mt-4 mx-4">
-                  <Text className="ml-2 text-4xl font-bold text-[#0500ff] self-center">
-                    {pressImage === true
-                      ? 96
-                      : data === "" || data.temperature < 30
-                      ? "---"
-                      : data.o2}
-                  </Text>
-                  <Text className="ml-1 text-4xl font-normal text-[#0500ff] self-center">
-                    %
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.temperature} className="mt-4">
-                <View className="flex flex-row mt-4 mx-4">
-                  <Image
-                    source={require("../../assets/temperatur.png")}
-                    style={{ width: 14.3, height: 28, marginTop: 0 }}
-                  ></Image>
-                  <Text className="mx-1 text-xl font-medium text-[#ff7a00] self-center">
-                    Temperature
-                  </Text>
-                </View>
-                <View className="flex flex-row mt-4 mx-4">
-                  <Text className="ml-2 text-4xl font-bold text-[#ff7a00] self-center">
-                    {pressImage === true
-                      ? 38
-                      : data === "" || data.temperature < 30
-                      ? "---"
-                      : data.temperature}
-                  </Text>
-                  <Text className="ml-1 text-4xl font-normal text-[#ff7a00] self-center">
-                    °C
-                  </Text>
-                </View>
-              </View>
+              <Text className="px-1 text-4xl font-bold w-3/4 tracking-wide">
+                Welcome to AHMS
+              </Text>
+              <Image
+                source={require("../../assets/circle-logo.png")}
+                style={{ width: 70, height: 70, marginTop: 0 }}
+              ></Image>
             </View>
-            <View style={styles.condition} className="mt-4">
-              <View className="flex flex-col justify-between mx-4 h-full">
-                <View>
-                  <View className="flex flex-row mt-4">
+          </Pressable>
+          {mqttConnect === true ? (
+            <ActivityIndicator size="large" />
+          ) : (
+            <View>
+              <View style={styles.heartRate} className="mt-6">
+                <View className="flex flex-row h-full">
+                  <View className="mx-4">
+                    <View className="flex flex-row mt-4">
+                      <Image
+                        source={require("../../assets/mdi_heart-outline.png")}
+                        style={{ width: 30, height: 30, marginTop: 0 }}
+                      ></Image>
+                      <Text className="mx-2 text-xl font-medium text-[#ff0000] self-center">
+                        Heart Rate
+                      </Text>
+                    </View>
+                    <View className="flex flex-row mt-4">
+                      <Text className="mx-2 text-4xl font-bold text-[#ff0000] self-center">
+                        {data === "" || data.temperature < 30
+                          ? "---"
+                          : data.heart}
+                      </Text>
+                      <Text className="mx-2 text-lg font-normal text-[#ff0000] self-end">
+                        bpm
+                      </Text>
+                    </View>
+                  </View>
+                  <View className="mx-auto self-center">
+                    <Pressable onPress={() => setFlag(!flag)}>
+                      <Image
+                        source={require("../../assets/Vector 1.png")}
+                        style={{ width: 130, height: 108.7, marginTop: 0 }}
+                      ></Image>
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+              <View className="flex flex-row justify-between">
+                <View style={styles.spo2} className="mt-4">
+                  <View className="flex flex-row mt-4 mx-4">
                     <Image
-                      source={require("../../assets/Vector.png")}
+                      source={require("../../assets/spo2.png")}
                       style={{ width: 28, height: 28, marginTop: 0 }}
                     ></Image>
-                    <Text className="mx-3 text-2xl font-medium text-[#9747ff] self-center">
-                      Condition
+                    <Text
+                      style={[styles.spo2Text, styles.spo2Typo]}
+                      className="mx-2"
+                    >
+                      <Text style={styles.s}>S</Text>
+                      <Text style={styles.p}>p</Text>
+                      <Text style={styles.s}>O</Text>
+                      <Text style={styles.p}>2</Text>
                     </Text>
                   </View>
-                  <View className="flex flex-row mt-4">
-                    <Text
-                      className={`${
-                        pressImage !== true ? "text-xl" : "text-xl"
-                      } ${
-                        data.condition ===
-                          "Terdeteksi urgent, segera hubungi dokter!" ||
-                        pressImage === true
-                          ? "text-[#ff0000]"
-                          : "text-[#9747ff]"
-                      } font-bold self-center`}
-                    >
+                  <View className="flex flex-row mt-4 mx-4">
+                    <Text className="ml-2 text-4xl font-bold text-[#0500ff] self-center">
                       {pressImage === true
-                        ? "Terdeteksi urgent, segera hubungi dokter!"
+                        ? 96
                         : data === "" || data.temperature < 30
                         ? "---"
-                        : data.condition}
+                        : data.o2}
+                    </Text>
+                    <Text className="ml-1 text-4xl font-normal text-[#0500ff] self-center">
+                      %
                     </Text>
                   </View>
                 </View>
-                <View>
-                  {hasContact === 0 || hasContact === 1 ? (
-                    <TouchableOpacity
-                      onPress={handleContactDoctor}
-                      className="mb-4 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
-                    >
-                      <Text
-                        className="text-lg text-textButton font-semibold text-center text-white"
-                        style={{ marginTop: 2 }}
-                      >
-                        {hasContact === 0 ? "Contact Doctor" : "Contacting..."}
-                      </Text>
-                      {hasContact === 1 && (
-                        <ActivityIndicator
-                          size="small"
-                          color="#FFFFFF"
-                        ></ActivityIndicator>
-                      )}
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity
-                      onPress={() => {
-                        router.push({
-                          pathname: "./roomChat",
-                          params: {
-                            id: idDokter,
-                            photoURL: photoURLDokter,
-                            nama: namaDokter,
-                          },
-                        });
-                      }}
-                      className="mb-4 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
-                    >
-                      <Text className="text-lg text-textButton font-semibold text-center text-white">
-                        Go To Chat
-                      </Text>
-                      {hasContact === 1 && (
-                        <ActivityIndicator
-                          size="small"
-                          color="#FFFFFF"
-                        ></ActivityIndicator>
-                      )}
-                    </TouchableOpacity>
-                  )}
+                <View style={styles.temperature} className="mt-4">
+                  <View className="flex flex-row mt-4 mx-4">
+                    <Image
+                      source={require("../../assets/temperatur.png")}
+                      style={{ width: 14.3, height: 28, marginTop: 0 }}
+                    ></Image>
+                    <Text className="mx-1 text-xl font-medium text-[#ff7a00] self-center">
+                      Temperature
+                    </Text>
+                  </View>
+                  <View className="flex flex-row mt-4 mx-4">
+                    <Text className="ml-2 text-4xl font-bold text-[#ff7a00] self-center">
+                      {pressImage === true
+                        ? 38
+                        : data === "" || data.temperature < 30
+                        ? "---"
+                        : data.temperature}
+                    </Text>
+                    <Text className="ml-1 text-4xl font-normal text-[#ff7a00] self-center">
+                      °C
+                    </Text>
+                  </View>
                 </View>
               </View>
+              <View style={styles.condition} className="mt-4">
+                <View className="flex flex-col justify-between mx-4 h-full">
+                  <View>
+                    <View className="flex flex-row mt-4">
+                      <Image
+                        source={require("../../assets/Vector.png")}
+                        style={{ width: 28, height: 28, marginTop: 0 }}
+                      ></Image>
+                      <Text className="mx-3 text-2xl font-medium text-[#9747ff] self-center">
+                        Condition
+                      </Text>
+                    </View>
+                    <View className="flex flex-row mt-4">
+                      <Text
+                        className={`${
+                          pressImage !== true ? "text-xl" : "text-xl"
+                        } ${
+                          data.condition ===
+                            "Terdeteksi urgent, segera hubungi dokter!" ||
+                          pressImage === true
+                            ? "text-[#ff0000]"
+                            : "text-[#9747ff]"
+                        } font-bold self-center`}
+                      >
+                        {pressImage === true
+                          ? "Terdeteksi urgent, segera hubungi dokter!"
+                          : data === "" || data.temperature < 30
+                          ? "---"
+                          : data.condition}
+                      </Text>
+                    </View>
+                  </View>
+                  <View>
+                    {hasContact === 0 || hasContact === 1 ? (
+                      <TouchableOpacity
+                        onPress={handleContactDoctor}
+                        className="mb-4 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
+                      >
+                        <Text
+                          className="text-lg text-textButton font-semibold text-center text-white"
+                          style={{ marginTop: 2 }}
+                        >
+                          {hasContact === 0 ? "Contact Doctor" : "Contacting..."}
+                        </Text>
+                        {hasContact === 1 && (
+                          <ActivityIndicator
+                            size="small"
+                            color="#FFFFFF"
+                          ></ActivityIndicator>
+                        )}
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => {
+                          router.push({
+                            pathname: "./roomChat",
+                            params: {
+                              id: idDokter,
+                              photoURL: photoURLDokter,
+                              nama: namaDokter,
+                            },
+                          });
+                        }}
+                        className="mb-4 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
+                      >
+                        <Text className="text-lg text-textButton font-semibold text-center text-white">
+                          Go To Chat
+                        </Text>
+                        {hasContact === 1 && (
+                          <ActivityIndicator
+                            size="small"
+                            color="#FFFFFF"
+                          ></ActivityIndicator>
+                        )}
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              </View>
+              
+              {/* Add some padding at the bottom to ensure scrollability */}
+              <View className="h-20" />
             </View>
-          </View>
-        )}
-      </View>
+          )}
+        </View>
+      </ScrollView>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   heartRate: {
     shadowColor: "rgba(0, 0, 0, 0.25)",
