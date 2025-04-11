@@ -39,10 +39,29 @@ const chatRoom = () => {
   const inputRef = useRef<any>(null);
   const scrollViewRef = useRef<any>(null);
   const [showVideo, setShowVideo] = useState(false);
+  const [ipAddress, setIpAddress] = useState("");
+  const [loading, setLoading] = useState(true);
 
   console.log("params : ", params);
 
   useEffect(() => {
+    // Function to fetch IP address
+    const fetchIpAddress = async () => {
+      try {
+        console.log("fetching ip address");
+        const response = await fetch(
+          "https://astanibackend2-763033978430.asia-southeast2.run.app/IpAddress"
+        );
+        const data = await response.json();
+        setIpAddress(data.ipaddress); // Set the IP address in state
+        console.log("success catch ip address");
+      } catch (error) {
+        console.error("Failed to fetch IP address:", error);
+        Alert.alert("Error", "Failed to fetch IP address");
+      }
+    };
+
+    fetchIpAddress();
     createRoomIfNotExists();
     let roomId = getRoomId(getAuth().currentUser?.uid, params.id);
     const docRef = doc(getFirestore(), "rooms", roomId);
@@ -60,12 +79,13 @@ const chatRoom = () => {
       updateScrollView
     );
 
+    setLoading(false);
+    console.log(ipAddress);
+
     return () => {
       unsub();
       KeyboardDidShowListener.remove();
     };
-
-    return unsub;
   }, []);
 
   useEffect(() => {
@@ -116,13 +136,17 @@ const chatRoom = () => {
             headerShadowVisible: false,
             headerRight: () => (
               <View className="flex flex-row items-center gap-x-4">
-                <TouchableOpacity onPress={() => setShowVideo(!showVideo)}>
-                  <MaterialCommunityIcons
-                    name="video-outline"
-                    size={45}
-                    color="green"
-                  />
-                </TouchableOpacity>
+                {loading ? (
+                  <ActivityIndicator size="large"></ActivityIndicator>
+                ) : (
+                  <TouchableOpacity onPress={() => setShowVideo(!showVideo)}>
+                    <MaterialCommunityIcons
+                      name="video-outline"
+                      size={45}
+                      color="green"
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
             ),
             headerLeft: () => (
@@ -149,9 +173,7 @@ const chatRoom = () => {
         />
         {showVideo && (
           <View className="flex-1" style={{ height: 200 }}>
-            <WebView
-              source={{ uri: "http://192.168.0.134:80" }}
-            />
+            <WebView source={{ uri: `http://${ipAddress}` }} />
           </View>
         )}
 

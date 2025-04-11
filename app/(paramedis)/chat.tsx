@@ -8,7 +8,7 @@ import {
   Image,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
 import { SafeAreaView } from "react-native-safe-area-context";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { getAuth, signOut } from "firebase/auth";
@@ -26,8 +26,11 @@ const chat = () => {
 
   const fetchParamedis = async () => {
     try {
+      const userDomain = getAuth().currentUser?.email?.split("@")[1];
       const paramedisRef = collection(getFirestore(), "dokter"); // Reference to the Firestore collection
-      const snapshot = await getDocs(paramedisRef); // Get all documents from the collection
+      const q = query(paramedisRef, where("domain", "==", userDomain));
+      const snapshot = await getDocs(q); // Get all documents from the collection
+      console.log(snapshot);
       const documentData = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),

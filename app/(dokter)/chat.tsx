@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ChatList from "../../components/ChatList";
 import { getAuth, signOut } from "firebase/auth";
@@ -25,12 +25,16 @@ const chat = () => {
 
   const fetchParamedis = async () => {
     try {
+      const userDomain = getAuth().currentUser?.email?.split("@")[1];
       const paramedisRef = collection(getFirestore(), "paramedis"); // Reference to the Firestore collection
-      const snapshot = await getDocs(paramedisRef); // Get all documents from the collection
+      const q = query(paramedisRef, where("domain", "==", userDomain));
+      const snapshot = await getDocs(q); // Get all documents from the collection
       const documentData = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
+      console.log("documentData : ", documentData); 
+      console.log(getAuth().currentUser?.email);
       setUsers(documentData);
     } catch (error) {
       console.error("Error fetching documents: ", error);

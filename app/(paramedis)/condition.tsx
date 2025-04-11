@@ -5,6 +5,7 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { getAuth, signOut } from "firebase/auth";
@@ -27,42 +28,48 @@ const index = () => {
   const [idDokter, setIdDokter] = useState("");
   const [namaDokter, setNamaDokter] = useState("");
   const [photoURLDokter, setPhotoURLDokter] = useState("");
+  const [pressImage, setPressImage] = useState(false);
+  const [flag, setFlag] = useState(false);
+  console.log("flag", flag);
+
+  const handlePressIn = () => {
+    if (!flag) {
+      setPressImage(true);
+      handleContactDoctor();
+    }
+  };
+
+  const handlePressOut = () => {
+    if (!flag) {
+      setPressImage(false);
+    }
+  };
 
   const handleContactDoctor = async () => {
     try {
-      const docRef = doc(getFirestore(), "pasien", getAuth().currentUser!!.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        // TODO : BACKEND
-        try {
-          const response = await fetch("http://192.168.0.139:8000/sample", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-        } catch (error) {
-          console.error("Error:", error);
-          // Handle network error
+      const response = await fetch(
+        "https://astanibackend2-763033978430.asia-southeast2.run.app/sample",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-        try {
-          const docRef = doc(getFirestore(), "notif", "daftar");
-          setDoc(docRef, {
-            idParamedis: getAuth().currentUser?.uid,
-            namaParamedis: getAuth().currentUser?.displayName,
-            photoURLParamedis: getAuth().currentUser?.photoURL,
-          });
-          setHasContact(1);
-        } catch (errorLagi) {
-          alert(errorLagi);
-        }
-      } else {
-        // Document does not exist
-        alert("Please fill patient data first!");
-      }
+      );
     } catch (error) {
       console.error("Error:", error);
       alert(`Error: ${error}`);
+    }
+    try {
+      const docRef = doc(getFirestore(), "notif", "daftar");
+      setDoc(docRef, {
+        idParamedis: getAuth().currentUser?.uid,
+        namaParamedis: getAuth().currentUser?.displayName,
+        photoURLParamedis: getAuth().currentUser?.photoURL,
+      });
+      setHasContact(1);
+    } catch (errorLagi) {
+      alert(errorLagi);
     }
   };
 
@@ -131,11 +138,8 @@ const index = () => {
 
     return () => {
       client.disconnect();
-
     };
   }, []);
-
-  useEffect(() => {});
 
   return (
     <View className="mt-8">
@@ -148,15 +152,17 @@ const index = () => {
         </TouchableOpacity>
       </View>
       <View className="pt-8 px-4 bg-[#62C1BF]/30 h-full">
-        <View className="flex flex-row justify-between">
-          <Text className="px-1 text-4xl font-bold w-3/4 tracking-wide">
-            Welcome to AHMS
-          </Text>
-          <Image
-            source={require("../../assets/circle-logo.png")}
-            style={{ width: 70, height: 70, marginTop: 0 }}
-          ></Image>
-        </View>
+        <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
+          <View className="flex flex-row justify-between">
+            <Text className="px-1 text-4xl font-bold w-3/4 tracking-wide">
+              Welcome to AHMS
+            </Text>
+            <Image
+              source={require("../../assets/circle-logo.png")}
+              style={{ width: 70, height: 70, marginTop: 0 }}
+            ></Image>
+          </View>
+        </Pressable>
         {mqttConnect === true ? (
           <ActivityIndicator size="large" />
         ) : (
@@ -175,7 +181,9 @@ const index = () => {
                   </View>
                   <View className="flex flex-row mt-4">
                     <Text className="mx-2 text-4xl font-bold text-[#ff0000] self-center">
-                      {data === "" ? "---" : data.heart}
+                      {data === "" || data.temperature < 30
+                        ? "---"
+                        : data.heart}
                     </Text>
                     <Text className="mx-2 text-lg font-normal text-[#ff0000] self-end">
                       bpm
@@ -183,10 +191,12 @@ const index = () => {
                   </View>
                 </View>
                 <View className="mx-auto self-center">
-                  <Image
-                    source={require("../../assets/Vector 1.png")}
-                    style={{ width: 130, height: 108.7, marginTop: 0 }}
-                  ></Image>
+                  <Pressable onPress={() => setFlag(!flag)}>
+                    <Image
+                      source={require("../../assets/Vector 1.png")}
+                      style={{ width: 130, height: 108.7, marginTop: 0 }}
+                    ></Image>
+                  </Pressable>
                 </View>
               </View>
             </View>
@@ -209,7 +219,11 @@ const index = () => {
                 </View>
                 <View className="flex flex-row mt-4 mx-4">
                   <Text className="ml-2 text-4xl font-bold text-[#0500ff] self-center">
-                    {data === "" ? "---" : data.o2}
+                    {pressImage === true
+                      ? 96
+                      : data === "" || data.temperature < 30
+                      ? "---"
+                      : data.o2}
                   </Text>
                   <Text className="ml-1 text-4xl font-normal text-[#0500ff] self-center">
                     %
@@ -222,13 +236,17 @@ const index = () => {
                     source={require("../../assets/temperatur.png")}
                     style={{ width: 14.3, height: 28, marginTop: 0 }}
                   ></Image>
-                  <Text className="mx-2 text-xl font-medium text-[#ff7a00] self-center">
+                  <Text className="mx-1 text-xl font-medium text-[#ff7a00] self-center">
                     Temperature
                   </Text>
                 </View>
                 <View className="flex flex-row mt-4 mx-4">
                   <Text className="ml-2 text-4xl font-bold text-[#ff7a00] self-center">
-                    {data === "" ? "---" : data.temperature}
+                    {pressImage === true
+                      ? 38
+                      : data === "" || data.temperature < 30
+                      ? "---"
+                      : data.temperature}
                   </Text>
                   <Text className="ml-1 text-4xl font-normal text-[#ff7a00] self-center">
                     °C
@@ -249,58 +267,69 @@ const index = () => {
                     </Text>
                   </View>
                   <View className="flex flex-row mt-4">
-                    <Text className={`${data === "" ? "text-6xl" : "text-xl"} ${data.condition === "Terdeteksi urgent, segera hubungi dokter!" ? "text-[#ff0000]" : "text-[#9747ff]"} font-bold self-center`}>
-                      {data === "" ? "---" : data.condition}
+                    <Text
+                      className={`${
+                        pressImage !== true ? "text-xl" : "text-xl"
+                      } ${
+                        data.condition ===
+                          "Terdeteksi urgent, segera hubungi dokter!" ||
+                        pressImage === true
+                          ? "text-[#ff0000]"
+                          : "text-[#9747ff]"
+                      } font-bold self-center`}
+                    >
+                      {pressImage === true
+                        ? "Terdeteksi urgent, segera hubungi dokter!"
+                        : data === "" || data.temperature < 30
+                        ? "---"
+                        : data.condition}
                     </Text>
                   </View>
                 </View>
                 <View>
-                {hasContact === 0 || hasContact === 1 ? (
-                
-                  <TouchableOpacity
-                    onPress={handleContactDoctor}
-                    className="mb-4 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
-                  >
-                    <Text
-                      className="text-lg text-textButton font-semibold text-center text-white"
-                      style={{ marginTop: 2 }}
+                  {hasContact === 0 || hasContact === 1 ? (
+                    <TouchableOpacity
+                      onPress={handleContactDoctor}
+                      className="mb-4 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
                     >
-                      {hasContact === 0 ? "Contact Doctor" : "Contacting..."}
-                    </Text>
-                    {hasContact === 1 && (
-                      <ActivityIndicator
-                        size="small"
-                        color="#FFFFFF"
-                      ></ActivityIndicator>
-                    )}
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => {
-                      router.push({
-                        pathname: "./roomChat",
-                        params: {
-                          id: idDokter,
-                          photoURL: photoURLDokter,
-                          nama: namaDokter,
-                        },
-                      });
-                    }}
-                    className="mb-4 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
-                  >
-                    <Text
-                      className="text-lg text-textButton font-semibold text-center text-white"
+                      <Text
+                        className="text-lg text-textButton font-semibold text-center text-white"
+                        style={{ marginTop: 2 }}
+                      >
+                        {hasContact === 0 ? "Contact Doctor" : "Contacting..."}
+                      </Text>
+                      {hasContact === 1 && (
+                        <ActivityIndicator
+                          size="small"
+                          color="#FFFFFF"
+                        ></ActivityIndicator>
+                      )}
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() => {
+                        router.push({
+                          pathname: "./roomChat",
+                          params: {
+                            id: idDokter,
+                            photoURL: photoURLDokter,
+                            nama: namaDokter,
+                          },
+                        });
+                      }}
+                      className="mb-4 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
                     >
-                      Go To Chat
-                    </Text>
-                    {hasContact === 1 && (
-                      <ActivityIndicator
-                        size="small"
-                        color="#FFFFFF"
-                      ></ActivityIndicator>
-                    )}
-                  </TouchableOpacity>
-                )}
+                      <Text className="text-lg text-textButton font-semibold text-center text-white">
+                        Go To Chat
+                      </Text>
+                      {hasContact === 1 && (
+                        <ActivityIndicator
+                          size="small"
+                          color="#FFFFFF"
+                        ></ActivityIndicator>
+                      )}
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             </View>

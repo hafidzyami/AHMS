@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -20,7 +21,8 @@ import { router } from "expo-router";
 
 const patientdata = () => {
   const [fullName, setFullName] = useState<string>("");
-  const [age, setAge] = useState<any>(0);
+  const [nik, setNik] = useState<any>("");
+  const [age, setAge] = useState<any>("");
   const [gender, setGender] = useState<string>("");
   const [height, setHeight] = useState<any>("");
   const [weight, setWeight] = useState<any>("");
@@ -34,25 +36,82 @@ const patientdata = () => {
   const [loading, setLoading] = useState(true);
   const [hasPatient, setHasPatient] = useState(false);
 
+  const firstNames = ["John", "Jane", "Alex", "Emily", "Chris"];
+  const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Taylor"];
+  const genders = ["Male", "Female"];
+  const getRandomElement = (arr: string[]) =>
+    arr[Math.floor(Math.random() * arr.length)];
+  const getRandomNumber = (min: number, max: number) =>
+    Math.floor(Math.random() * (max - min + 1)) + min;
+
   const handleSave = async () => {
-    if (!fullName || !age || !gender || !height || !weight || !bmi) {
-      alert("Please fill all the fields!");
-      return;
-    }
-    try {
-      await setDoc(doc(getFirestore(), "pasien", getAuth().currentUser!!.uid), {
-        name: fullName,
-        age: age,
-        gender: gender,
-        height: height,
-        weight: weight,
-        bmi: bmi,
-      }).then(() => {
-        alert("Berhasil Input Data Pasien!");
-        router.replace("./condition");
-      });
-    } catch (error) {
-      alert(error);
+    if (nik !== "") {
+      // Generate random values and store them in local variables
+      const firstName = getRandomElement(firstNames);
+      const lastName = getRandomElement(lastNames);
+      const randomFullName = `${firstName} ${lastName}`;
+      const randomAge = getRandomNumber(18, 80);
+      const randomGender = getRandomElement(genders);
+      const randomHeight = getRandomNumber(140, 180);
+      const randomWeight = getRandomNumber(50, 120);
+      const bmi = randomWeight / (randomHeight / 100) ** 2;
+
+      // Update state with random values
+      if (fullName === "") {
+        setFullName(randomFullName);
+      }
+      if (age === "") {
+        setAge(randomAge.toString());
+      }
+      if (gender === "") {
+        setGender(randomGender);
+      }
+      if (height === "") {
+        setHeight(randomHeight.toString());
+      }
+      if (weight === "") {
+        setWeight(randomWeight.toString());
+      }
+      try {
+        // Save data to Firebase using the local variables
+        await setDoc(
+          doc(getFirestore(), "pasien", getAuth().currentUser!!.uid),
+          {
+            name: fullName || randomFullName,
+            age: age || randomAge,
+            gender: gender || randomGender,
+            height: height || randomHeight,
+            weight: weight || randomWeight,
+            bmi: bmi,
+            nik: nik,
+          }
+        ).then(() => {
+          alert("Berhasil Input Data Pasien!");
+          setHasPatient(true);
+        });
+      } catch (error) {
+        alert(error);
+      }
+    } else {
+      try {
+        await setDoc(
+          doc(getFirestore(), "pasien", getAuth().currentUser!!.uid),
+          {
+            name: fullName,
+            age: age,
+            gender: gender,
+            height: height,
+            weight: weight,
+            bmi: bmi,
+            nik: nik,
+          }
+        ).then(() => {
+          alert("Berhasil Input Data Pasien!");
+          // router.replace("./condition");
+        });
+      } catch (error) {
+        alert(error);
+      }
     }
   };
 
@@ -68,10 +127,9 @@ const patientdata = () => {
         setHeight("");
         setWeight("");
         setGender("");
+        setNik("");
       });
-      deleteDoc(
-        doc(getFirestore(), "notif", "daftar")
-      )
+      deleteDoc(doc(getFirestore(), "notif", "daftar"));
     } catch (error) {
       alert(error);
     }
@@ -93,11 +151,15 @@ const patientdata = () => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setFullName(data.name || "");
-        setAge(data.age || "");
-        setHeight(data.height || "");
-        setWeight(data.weight || "");
-        setGender(data.gender || "");
+        setAge(data.age.toString() || "");
+        setHeight(data.height.toString() || "");
+        setWeight(data.weight.toString() || "");
+        setGender(data.gender.toString() || "");
+        setNik(data.nik || "");
         setHasPatient(true);
+        console.log("data", data);
+        console.log(data.height, data.weight, data.age);
+        console.log("data hilang:", height, weight, age);
       }
     } catch (error) {
       console.error("Error fetching document: ", error);
@@ -120,9 +182,8 @@ const patientdata = () => {
     }
   };
 
-
   return (
-    <View className="mt-8">
+    <ScrollView className="mt-8 mb-16">
       <View className="mt-8 flex flex-row items-center justify-between px-7">
         <Text className="font-extrabold text-xl">Fill Patient Data</Text>
         <Image
@@ -137,48 +198,63 @@ const patientdata = () => {
           <View>
             <View className="gap-5">
               <View>
-                <Text className="text-base">Fullname</Text>
+                <Text className="text-base font-bold">NIK</Text>
                 <TextInput
-                  placeholder="name"
-                  onChangeText={(text) => setFullName(text)}
-                  value={fullName}
+                  placeholder="NIK"
+                  keyboardType="number-pad"
+                  onChangeText={(text) => setNik(text)}
+                  value={nik}
+                  editable={hasPatient === false}
                   className="text-base py-2 border-b-2 border-gray-400"
                 />
               </View>
               <View>
-                <Text className="text-base">Age</Text>
+                <Text className="text-base font-bold">Fullname</Text>
+                <TextInput
+                  placeholder="name"
+                  onChangeText={(text) => setFullName(text)}
+                  value={fullName}
+                  editable={hasPatient === false}
+                  className="text-base py-2 border-b-2 border-gray-400"
+                />
+              </View>
+              <View>
+                <Text className="text-base font-bold">Age</Text>
                 <TextInput
                   placeholder="age"
                   keyboardType="number-pad"
                   onChangeText={(text) => setAge(text)}
                   value={age}
+                  editable={hasPatient === false}
                   className="text-base py-2 border-b-2 border-gray-400"
                 />
               </View>
               <View>
-                <Text className="text-base">Height (cm)</Text>
+                <Text className="text-base font-bold">Height (cm)</Text>
                 <TextInput
                   placeholder="cm"
                   keyboardType="decimal-pad"
                   onChangeText={(text) => setHeight(text)}
                   value={height}
+                  editable={hasPatient === false}
                   className="text-base py-2 border-b-2 border-gray-400"
                 />
               </View>
               <View>
-                <Text className="text-base">Weight (kg)</Text>
+                <Text className="text-base font-bold">Weight (kg)</Text>
                 <TextInput
                   placeholder="kg"
                   keyboardType="decimal-pad"
                   onChangeText={(text) => setWeight(text)}
                   value={weight}
+                  editable={hasPatient === false}
                   className="text-base py-2 border-b-2 border-gray-400"
                 />
               </View>
               <View>
-                <Text className="text-base">BMI</Text>
+                <Text className="text-base font-bold">BMI</Text>
                 <TextInput
-                  placeholder="Auto-generated, please fill Height and Weight"
+                  placeholder="Auto-generated"
                   editable={false}
                   value={bmi}
                   className="text-base py-2 border-b-2 border-gray-400"
@@ -219,7 +295,7 @@ const patientdata = () => {
           </View>
         )}
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

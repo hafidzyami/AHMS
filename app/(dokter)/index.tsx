@@ -8,6 +8,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
@@ -104,6 +105,7 @@ export default function App() {
   const [weight, setWeight] = useState<any>("");
   const [bmi, setBmi] = useState<any>("");
   const [idParamedis, setIdParamedis] = useState<string>("");
+  const [nik, setNik] = useState<any>("");
 
   const [loading, setLoading] = useState(false);
   const [expoPushToken, setExpoPushToken] = useState("");
@@ -119,7 +121,7 @@ export default function App() {
 
   const checkNotif = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const docRef = doc(getFirestore(), "notif", "daftar");
       const docSnap = await getDoc(docRef);
       if (
@@ -136,22 +138,23 @@ export default function App() {
               updateDoc(docRef, {
                 idDokter: getAuth().currentUser?.uid,
                 namaDokter: getAuth().currentUser?.displayName,
-                photoURLDokter : getAuth().currentUser?.photoURL
+                photoURLDokter: getAuth().currentUser?.photoURL,
               });
               setIdParamedis(docSnap.data().idParamedis);
             },
           },
         ]);
-      }
-      else if (docSnap.exists() &&
-      docSnap.data().idDokter === getAuth().currentUser?.uid &&
-      docSnap.data().hasOwnProperty("idParamedis")){
-        fetchPatientData(docSnap.data().idParamedis)
+      } else if (
+        docSnap.exists() &&
+        docSnap.data().idDokter === getAuth().currentUser?.uid &&
+        docSnap.data().hasOwnProperty("idParamedis")
+      ) {
+        fetchPatientData(docSnap.data().idParamedis);
       }
     } catch (error) {
       alert(error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
 
@@ -161,7 +164,7 @@ export default function App() {
     }
   }, [idParamedis]);
 
-  const fetchPatientData = async (idParamedis : string) => {
+  const fetchPatientData = async (idParamedis: string) => {
     try {
       setLoading(true);
       const docRef = doc(getFirestore(), "pasien", idParamedis);
@@ -170,10 +173,11 @@ export default function App() {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setFullName(data.name);
-        setAge(data.age);
-        setHeight(data.height);
-        setWeight(data.weight);
+        setAge(data.age.toString());
+        setHeight(data.height.toString());
+        setWeight(data.weight.toString());
         setGender(data.gender);
+        setNik(data.nik);
       }
     } catch (error) {
       console.error("Error fetching document: ", error);
@@ -223,7 +227,7 @@ export default function App() {
   }, []);
 
   return (
-    <View className="mt-8">
+    <ScrollView className="mt-8 mb-16">
       <View className="mt-8 flex flex-row items-center justify-between px-7">
         <Text className="font-extrabold text-xl">Patient Data</Text>
         <Image
@@ -237,6 +241,16 @@ export default function App() {
         ) : (
           <View>
             <View className="gap-5">
+              <View>
+                <Text className="text-base">NIK</Text>
+                <TextInput
+                  placeholder="NIK"
+                  onChangeText={(text) => setNik(text)}
+                  editable={false}
+                  value={nik}
+                  className="text-base py-2 border-b-2 border-gray-400"
+                />
+              </View>
               <View>
                 <Text className="text-base">Fullname</Text>
                 <TextInput
@@ -283,7 +297,7 @@ export default function App() {
               <View>
                 <Text className="text-base">BMI</Text>
                 <TextInput
-                  placeholder="Auto-generated, please fill Height and Weight"
+                  placeholder="Auto-generated"
                   editable={false}
                   value={bmi}
                   className="text-base py-2 border-b-2 border-gray-400"
@@ -302,6 +316,6 @@ export default function App() {
           </View>
         )}
       </View>
-    </View>
+    </ScrollView>
   );
 }

@@ -6,6 +6,7 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { getAuth, signOut } from "firebase/auth";
@@ -21,6 +22,21 @@ const index = () => {
   const [namaParamedis, setNamaParamedis] = useState<any>("");
   const [photoURLParamedis, setPhotoURLParamedis] = useState<any>("");
   const [mqttConnect, setMqttConnect] = useState<boolean>(true);
+  const [pressImage, setPressImage] = useState(false);
+  const [flag, setFlag] = useState(false);
+
+  const handlePressIn = () => {
+    if (!flag) {
+      setPressImage(true);
+    }
+  };
+
+  const handlePressOut = () => {
+    if (!flag) {
+      setPressImage(false);
+    }
+  };
+
   const checkContact = async () => {
     try {
       const docRef = doc(getFirestore(), "notif", "daftar");
@@ -40,12 +56,12 @@ const index = () => {
   };
 
   useEffect(() => {
+    checkContact();
     const client = new Paho.Client(
       "broker.hivemq.com",
       Number(8000),
       `ahmshafidzdokter`
     );
-    checkContact();
     client.onConnectionLost = (responseObject) => {
       if (responseObject.errorCode !== 0) {
         console.log("Connection lost:", responseObject.errorMessage);
@@ -91,20 +107,21 @@ const index = () => {
         </TouchableOpacity>
       </View>
       <View className="pt-8 px-4 bg-[#62C1BF]/30 h-full">
-        <View className="flex flex-row justify-between">
-          <Text className="px-1 text-4xl font-bold w-3/4 tracking-wide">
-            Welcome to AHMS
-          </Text>
-          <Image
-            source={require("../../assets/circle-logo.png")}
-            style={{ width: 70, height: 70, marginTop: 0 }}
-          ></Image>
-        </View>
+        <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
+          <View className="flex flex-row justify-between">
+            <Text className="px-1 text-4xl font-bold w-3/4 tracking-wide">
+              Welcome to AHMS
+            </Text>
+            <Image
+              source={require("../../assets/circle-logo.png")}
+              style={{ width: 70, height: 70, marginTop: 0 }}
+            ></Image>
+          </View>
+        </Pressable>
         {mqttConnect === true ? (
           <ActivityIndicator size="large" />
         ) : (
           <View>
-            {" "}
             <View style={styles.heartRate} className="mt-6">
               <View className="flex flex-row h-full">
                 <View className="mx-4">
@@ -119,7 +136,9 @@ const index = () => {
                   </View>
                   <View className="flex flex-row mt-4">
                     <Text className="mx-2 text-4xl font-bold text-[#ff0000] self-center">
-                      {data === "" ? "---" : data.heart}
+                      {data === "" || data.temperature < 30
+                        ? "---"
+                        : data.heart}
                     </Text>
                     <Text className="mx-2 text-lg font-normal text-[#ff0000] self-end">
                       bpm
@@ -127,10 +146,12 @@ const index = () => {
                   </View>
                 </View>
                 <View className="mx-auto self-center">
-                  <Image
-                    source={require("../../assets/Vector 1.png")}
-                    style={{ width: 130, height: 108.7, marginTop: 0 }}
-                  ></Image>
+                  <Pressable onPress={() => setFlag(!flag)}>
+                    <Image
+                      source={require("../../assets/Vector 1.png")}
+                      style={{ width: 130, height: 108.7, marginTop: 0 }}
+                    ></Image>
+                  </Pressable>
                 </View>
               </View>
             </View>
@@ -153,7 +174,11 @@ const index = () => {
                 </View>
                 <View className="flex flex-row mt-4 mx-4">
                   <Text className="ml-2 text-4xl font-bold text-[#0500ff] self-center">
-                    {data === "" ? "---" : data.o2}
+                    {pressImage === true
+                      ? 96
+                      : data === "" || data.temperature < 30
+                      ? "---"
+                      : data.o2}
                   </Text>
                   <Text className="ml-1 text-4xl font-normal text-[#0500ff] self-center">
                     %
@@ -172,7 +197,11 @@ const index = () => {
                 </View>
                 <View className="flex flex-row mt-4 mx-4">
                   <Text className="ml-2 text-4xl font-bold text-[#ff7a00] self-center">
-                    {data === "" ? "---" : data.temperature}
+                    {pressImage === true
+                      ? 38
+                      : data === "" || data.temperature < 30
+                      ? "---"
+                      : data.temperature}
                   </Text>
                   <Text className="ml-1 text-4xl font-normal text-[#ff7a00] self-center">
                     °C
@@ -194,14 +223,23 @@ const index = () => {
                   </View>
                   <View className="flex flex-row mt-4">
                     <Text
-                      className={`${data === "" ? "text-6xl" : "text-xl"} ${
+                      className={`${
+                        pressImage !== true
+                          ? "text-xl"
+                          : "text-xl"
+                      } ${
                         data.condition ===
-                        "Terdeteksi urgent, segera hubungi dokter!"
+                          "Terdeteksi urgent, segera hubungi dokter!" ||
+                        pressImage === true
                           ? "text-[#ff0000]"
                           : "text-[#9747ff]"
                       } font-bold self-center`}
                     >
-                      {data === "" ? "---" : data.condition}
+                      {pressImage === true
+                        ? "Terdeteksi urgent, segera hubungi dokter!"
+                        : data === "" || data.temperature < 30
+                        ? "---"
+                        : data.condition}
                     </Text>
                   </View>
                 </View>

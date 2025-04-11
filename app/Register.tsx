@@ -36,6 +36,8 @@ const RegisterScreen = () => {
             nama: getAuth().currentUser!!.displayName,
             telepon: getAuth().currentUser!!.phoneNumber,
             photoURL: getAuth().currentUser!!.photoURL,
+            email: getAuth().currentUser!!.email,
+            domain: getAuth().currentUser!!.email?.split("@")[1],
           }
         ).then(() => {
           alert("Berhasil daftar");
@@ -49,6 +51,8 @@ const RegisterScreen = () => {
             nama: getAuth().currentUser!!.displayName,
             telepon: getAuth().currentUser!!.phoneNumber,
             photoURL: getAuth().currentUser!!.photoURL,
+            email: getAuth().currentUser!!.email,
+            domain: getAuth().currentUser!!.email?.split("@")[1],
           }
         ).then(() => {
           alert("Berhasil daftar");
