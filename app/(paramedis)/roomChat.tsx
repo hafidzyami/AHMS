@@ -1,3 +1,4 @@
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,13 +8,13 @@ import {
   ActivityIndicator,
   Keyboard,
   Image,
+  StyleSheet,
+  SafeAreaView,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import ChatRoomHeader from "../../components/ChatRoomHeader";
-import MessageList from "../../components/MessageList";
-import CustomKeyboardView from "../../components/CustomKeyboardView";
 import { getRoomId } from "../../utils/common";
 import {
   Timestamp,
@@ -30,8 +31,10 @@ import { getAuth } from "firebase/auth";
 import { WebView } from "react-native-webview";
 import { Ionicons } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MessageList from "../../components/MessageList";
+import { Colors, Shadows } from "../../components/UIComponents";
 
-const chatRoom = () => {
+const RoomChatScreen = () => {
   const params = useLocalSearchParams(); //second user
   const router = useRouter();
   const [messages, setMessages] = useState<any>([]);
@@ -127,83 +130,205 @@ const chatRoom = () => {
     }
   };
   return (
-    <CustomKeyboardView inChat={true}>
-      <View className="flex-1 bg-white">
-        <StatusBar style="dark" />
-        <Stack.Screen
-          options={{
-            title: "",
-            headerShadowVisible: false,
-            headerRight: () => (
-              <View className="flex flex-row items-center gap-x-4">
-                {loading ? (
-                  <ActivityIndicator size="large"></ActivityIndicator>
-                ) : (
-                  <TouchableOpacity onPress={() => setShowVideo(!showVideo)}>
-                    <MaterialCommunityIcons
-                      name="video-outline"
-                      size={45}
-                      color="green"
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
-            ),
-            headerLeft: () => (
-              <View className="flex flex-row items-center gap-x-4">
-                <TouchableOpacity onPress={() => router.back()}>
-                  <Ionicons name="chevron-back" size={24} color="black" />
-                </TouchableOpacity>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar backgroundColor={Colors.primary} barStyle="dark-content" />
 
-                <Image
-                  source={{
-                    uri:
-                      typeof params.photoURL === "string"
-                        ? params.photoURL
-                        : "",
-                  }}
-                  height={50}
-                  width={50}
-                  borderRadius={50}
-                />
-                <Text className="text-xl font-bold">{params.nama}</Text>
-              </View>
-            ),
-          }}
-        />
-        {showVideo && (
-          <View className="flex-1" style={{ height: 200 }}>
-            <WebView source={{ uri: `${ipAddress}` }} />
-          </View>
-        )}
-
-        <View className="h-3 border-b border-neutral-200"></View>
-        <View className="flex-1 justify-between bg-neutral-100 overflow-visible">
-          <View className="flex-1">
-            <MessageList messages={messages} scrollViewRef={scrollViewRef} />
-          </View>
-          <View style={{ marginBottom: 60 }} className="pt-2">
-            <View className="flex-row justify-between items-center mx-3">
-              <View className="flex-row justify-between bg-white border p-2 border-neutral-300 rounded-full pl-5">
-                <TextInput
-                  ref={inputRef}
-                  onChangeText={(value) => (textRef.current = value)}
-                  placeholder="Type message..."
-                  className="flex-1 mr-2"
-                />
+      {/* Header */}
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: "",
+          headerShadowVisible: false,
+          headerStyle: {
+            backgroundColor: Colors.primary,
+          },
+          headerRight: () => (
+            <View style={styles.headerRightContainer}>
+              {loading ? (
+                <ActivityIndicator size="small" color={Colors.accent} />
+              ) : (
                 <TouchableOpacity
-                  className="bg-neutral-200 p-2 mr-[1px] rounded-full"
-                  onPress={handleSendMessage}
+                  onPress={() => setShowVideo(!showVideo)}
+                  style={styles.videoButton}
                 >
-                  <Text>Send</Text>
+                  <MaterialCommunityIcons
+                    name="video-outline"
+                    size={28}
+                    color={showVideo ? Colors.warning : Colors.accent}
+                  />
                 </TouchableOpacity>
-              </View>
+              )}
             </View>
+          ),
+          headerLeft: () => (
+            <View style={styles.headerLeftContainer}>
+              <TouchableOpacity
+                onPress={() => router.back()}
+                style={styles.backButton}
+              >
+                <Ionicons name="chevron-back" size={24} color={Colors.accent} />
+              </TouchableOpacity>
+
+              <Image
+                source={{
+                  uri:
+                    typeof params.photoURL === "string" ? params.photoURL : "",
+                }}
+                style={styles.avatarHeader}
+              />
+              <Text style={styles.headerName}>{params.nama}</Text>
+            </View>
+          ),
+        }}
+      />
+
+      {/* Video Stream */}
+      {showVideo && (
+        <View style={styles.videoContainer}>
+          <WebView
+            source={{ uri: `${ipAddress}` }}
+            startInLoadingState={true}
+            renderLoading={() => (
+              <View style={styles.webviewLoading}>
+                <ActivityIndicator size="large" color={Colors.accent} />
+              </View>
+            )}
+          />
+        </View>
+      )}
+
+      {/* Message List */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.container}
+        keyboardVerticalOffset={90}
+      >
+        <View style={styles.messagesContainer}>
+          <MessageList messages={messages} scrollViewRef={scrollViewRef} />
+        </View>
+
+        {/* Message Input */}
+        <View style={styles.inputContainer}>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              ref={inputRef}
+              value={messages}
+              onChangeText={setMessages}
+              placeholder="Type a message..."
+              placeholderTextColor={Colors.gray400}
+              style={styles.input}
+              multiline
+            />
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                !messages.trim() && styles.sendButtonDisabled,
+              ]}
+              onPress={handleSendMessage}
+              disabled={!messages.trim()}
+            >
+              <Ionicons
+                name="send"
+                size={18}
+                color={!messages.trim() ? Colors.gray300 : Colors.white}
+              />
+            </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </CustomKeyboardView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
-export default chatRoom;
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.primary,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  headerLeftContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerRightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  backButton: {
+    marginRight: 12,
+    padding: 4,
+  },
+  videoButton: {
+    padding: 8,
+  },
+  avatarHeader: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 8,
+  },
+  headerName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.textPrimary,
+  },
+  videoContainer: {
+    height: 200,
+    backgroundColor: Colors.gray100,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.gray200,
+  },
+  webviewLoading: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Colors.gray100,
+  },
+  messagesContainer: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  inputContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: Colors.white,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray200,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.background,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    ...Shadows.small,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    maxHeight: 100,
+    color: Colors.textPrimary,
+  },
+  sendButton: {
+    backgroundColor: Colors.accent,
+    borderRadius: 20,
+    width: 36,
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+  sendButtonDisabled: {
+    backgroundColor: Colors.gray200,
+  },
+});
+
+export default RoomChatScreen;

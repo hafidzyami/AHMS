@@ -1,53 +1,110 @@
-import { View, Text } from "react-native";
 import React from "react";
+import { View, Text, StyleSheet } from "react-native";
 import { getAuth } from "firebase/auth";
+import { Colors, Shadows } from "../components/UIComponents";
 
-const MessageItem = (message: any) => {
-  if (getAuth().currentUser?.uid == message?.message.userId) {
-    return (
+const MessageItem = ({ message }: any) => {
+  const isCurrentUser = getAuth().currentUser?.uid === message?.userId;
+
+  // Format timestamp
+  const formatTime = (timestamp: any) => {
+    if (!timestamp) return "";
+
+    const milliseconds =
+      timestamp.seconds * 1000 + Math.round(timestamp.nanoseconds / 1e6);
+    const date = new Date(milliseconds);
+    return `${date.getHours().toString().padStart(2, "0")}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  return (
+    <View
+      style={[
+        styles.container,
+        isCurrentUser ? styles.currentUserContainer : styles.otherUserContainer,
+      ]}
+    >
       <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          marginBottom: 3,
-          marginRight: 3,
-        }}
+        style={[
+          styles.bubble,
+          isCurrentUser ? styles.currentUserBubble : styles.otherUserBubble,
+        ]}
       >
-        <View style={{ maxWidth: "70%" }}>
-          <View
-            style={{
-              alignSelf: "flex-end",
-              padding: 10,
-              borderRadius: 8,
-              backgroundColor: "white",
-              borderWidth: 1,
-              borderColor: "#CBD5E0",
-            }}
-          >
-            <Text style={{ fontSize: 15 }}>{message?.message.text}</Text>
-          </View>
-        </View>
-      </View>
-    );
-  } else {
-    return (
-      <View style={{ maxWidth: "70%", marginLeft: 3, marginBottom: 3 }}>
-        <View
-          style={{
-            padding: 10,
-            paddingLeft: 16,
-            paddingRight: 16,
-            borderRadius: 8,
-            backgroundColor: "#EDF2F7",
-            borderWidth: 1,
-            borderColor: "#BEE3F8",
-          }}
+        <Text
+          style={[
+            styles.messageText,
+            isCurrentUser ? styles.currentUserText : styles.otherUserText,
+          ]}
         >
-          <Text style={{ fontSize: 15 }}>{message?.message.text}</Text>
-        </View>
+          {message?.text}
+        </Text>
+        <Text
+          style={[
+            styles.timeText,
+            isCurrentUser
+              ? styles.currentUserTimeText
+              : styles.otherUserTimeText,
+          ]}
+        >
+          {formatTime(message?.createdAt)}
+        </Text>
       </View>
-    );
-  }
+    </View>
+  );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 16,
+    marginVertical: 4,
+    maxWidth: "80%",
+  },
+  currentUserContainer: {
+    alignSelf: "flex-end",
+  },
+  otherUserContainer: {
+    alignSelf: "flex-start",
+  },
+  bubble: {
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    paddingBottom: 20, // Space for time text
+    minWidth: 80,
+    ...Shadows.small,
+  },
+  currentUserBubble: {
+    backgroundColor: Colors.primaryDark,
+    borderBottomRightRadius: 4,
+  },
+  otherUserBubble: {
+    backgroundColor: Colors.white,
+    borderBottomLeftRadius: 4,
+  },
+  messageText: {
+    fontSize: 16,
+  },
+  currentUserText: {
+    color: Colors.white,
+  },
+  otherUserText: {
+    color: Colors.textPrimary,
+  },
+  timeText: {
+    fontSize: 10,
+    position: "absolute",
+    bottom: 4,
+    right: 12,
+  },
+  currentUserTimeText: {
+    color: Colors.white,
+    opacity: 0.7,
+  },
+  otherUserTimeText: {
+    color: Colors.textSecondary,
+  },
+});
 
 export default MessageItem;

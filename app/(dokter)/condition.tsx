@@ -6,8 +6,11 @@ import {
   StyleSheet,
   ActivityIndicator,
   Pressable,
-  ScrollView,     // Add ScrollView
-  RefreshControl, // Add RefreshControl
+  ScrollView, // Add ScrollView
+  RefreshControl,
+  Alert,
+  SafeAreaView,
+  StatusBar, // Add RefreshControl
 } from "react-native";
 import React, { useEffect, useState, useCallback } from "react"; // Add useCallback
 import { getAuth, signOut } from "firebase/auth";
@@ -15,8 +18,9 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Paho from "paho-mqtt";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { router } from "expo-router";
+import { Colors, Shadows } from "../../components/UIComponents";
 
-const index = () => {
+const ConditionScreen = () => {
   const [data, setData] = useState<any>("");
   const [hasContact, setHasContact] = useState<boolean>(false);
   const [idParamedis, setIdParamedis] = useState<any>("");
@@ -68,22 +72,21 @@ const index = () => {
   // Add onRefresh function
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    
+
     // Perform the refresh actions
-    checkContact()
-      .finally(() => {
-        setRefreshing(false);
-        console.log("Refresh completed");
-      });
+    checkContact().finally(() => {
+      setRefreshing(false);
+      console.log("Refresh completed");
+    });
   }, []);
 
   useEffect(() => {
     checkContact();
     let reconnectCount = 0;
     const maxReconnects = 5;
-    let reconnectTimer : any = null;
+    let reconnectTimer: any = null;
     let isConnecting = false;
-    
+
     // Create client with unique ID (adding timestamp to prevent conflicts)
     const clientId = `ahmshafidzparamedis_${Date.now()}`;
     const client = new Paho.Client(
@@ -91,7 +94,7 @@ const index = () => {
       Number(80),
       clientId
     );
-    
+
     // Define connection options
     const connectOptions = {
       onSuccess: () => {
@@ -105,13 +108,13 @@ const index = () => {
           console.error("Error subscribing to topic:", error);
         }
       },
-      onFailure: (err : any) => {
+      onFailure: (err: any) => {
         console.log("MQTT Connection failed:", err.errorMessage);
         isConnecting = false;
         handleReconnect();
       },
     };
-    
+
     // Handle connection loss
     client.onConnectionLost = (responseObject) => {
       isConnecting = false;
@@ -121,17 +124,19 @@ const index = () => {
         handleReconnect();
       }
     };
-    
+
     // Handle reconnection with backoff
     const handleReconnect = () => {
       if (reconnectCount < maxReconnects && !isConnecting) {
         reconnectCount++;
         const delay = Math.min(1000 * reconnectCount, 5000); // Exponential backoff up to 5 seconds
-        
-        console.log(`MQTT Reconnecting attempt ${reconnectCount} in ${delay}ms`);
-        
+
+        console.log(
+          `MQTT Reconnecting attempt ${reconnectCount} in ${delay}ms`
+        );
+
         if (reconnectTimer) clearTimeout(reconnectTimer);
-        
+
         reconnectTimer = setTimeout(() => {
           if (!isConnecting) {
             isConnecting = true;
@@ -148,7 +153,7 @@ const index = () => {
         setMqttConnect(false); // Show error UI instead of loading
       }
     };
-    
+
     // Handle incoming messages
     client.onMessageArrived = (message) => {
       if (message.destinationName === "ahms") {
@@ -160,7 +165,7 @@ const index = () => {
         }
       }
     };
-    
+
     // Initial connection
     try {
       isConnecting = true;
@@ -170,7 +175,7 @@ const index = () => {
       isConnecting = false;
       handleReconnect();
     }
-    
+
     // Cleanup
     return () => {
       if (reconnectTimer) clearTimeout(reconnectTimer);
@@ -184,272 +189,435 @@ const index = () => {
     };
   }, []);
 
+  const handleSignOut = () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: () => signOut(getAuth()),
+      },
+    ]);
+  };
+
   return (
-    <View className="mt-8 flex-1">
-      <View className="flex flex-row justify-end bg-[#62C1BF]/30 h-[40px] px-4">
-        <TouchableOpacity
-          onPress={() => signOut(getAuth())}
-          className="self-center"
-        >
-          <FontAwesome size={28} name="sign-out" color="black" />
-        </TouchableOpacity>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar backgroundColor={Colors.primary} barStyle="dark-content" />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Patient Monitoring</Text>
+          <TouchableOpacity
+            onPress={handleSignOut}
+            style={styles.signOutButton}
+          >
+            <FontAwesome name="sign-out" size={24} color={Colors.accent} />
+          </TouchableOpacity>
+        </View>
       </View>
-      
-      {/* Wrap content in ScrollView with RefreshControl */}
-      <ScrollView 
-        className="flex-1"
+
+      {/* Body Content */}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
+          <RefreshControl
+            refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#62C1BF"]} // Android
-            tintColor="#62C1BF"  // iOS
+            colors={[Colors.accent]}
+            tintColor={Colors.accent}
           />
         }
       >
-        <View className="pt-8 px-4 bg-[#62C1BF]/30 h-full">
+        {/* Welcome Section */}
+        <View style={styles.welcomeSection}>
+          <View>
+            <Text style={styles.welcomeText}>Welcome to</Text>
+            <Text style={styles.ahmsText}>AIES</Text>
+            <Text style={styles.subtitleText}>
+              Ambulance Integrated Emergency System
+            </Text>
+          </View>
           <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
-            <View className="flex flex-row justify-between">
-              <Text className="px-1 text-4xl font-bold w-3/4 tracking-wide">
-                Welcome to AHMS
-              </Text>
-              <Image
-                source={require("../../assets/circle-logo.png")}
-                style={{ width: 70, height: 70, marginTop: 0 }}
-              ></Image>
-            </View>
+            <Image
+              source={require("../../assets/circle-logo.png")}
+              style={styles.logo}
+            />
           </Pressable>
-          {mqttConnect === true ? (
-            <ActivityIndicator size="large" />
-          ) : (
-            <View>
-              <View style={styles.heartRate} className="mt-6">
-                <View className="flex flex-row h-full">
-                  <View className="mx-4">
-                    <View className="flex flex-row mt-4">
-                      <Image
-                        source={require("../../assets/mdi_heart-outline.png")}
-                        style={{ width: 30, height: 30, marginTop: 0 }}
-                      ></Image>
-                      <Text className="mx-2 text-xl font-medium text-[#ff0000] self-center">
-                        Heart Rate
-                      </Text>
-                    </View>
-                    <View className="flex flex-row mt-4">
-                      <Text className="mx-2 text-4xl font-bold text-[#ff0000] self-center">
-                        {data === "" || data.temperature < 30
-                          ? "---"
-                          : data.heart}
-                      </Text>
-                      <Text className="mx-2 text-lg font-normal text-[#ff0000] self-end">
-                        bpm
-                      </Text>
-                    </View>
-                  </View>
-                  <View className="mx-auto self-center">
-                    <Pressable onPress={() => setFlag(!flag)}>
-                      <Image
-                        source={require("../../assets/Vector 1.png")}
-                        style={{ width: 130, height: 108.7, marginTop: 0 }}
-                      ></Image>
-                    </Pressable>
-                  </View>
-                </View>
-              </View>
-              <View className="flex flex-row justify-between">
-                <View style={styles.spo2} className="mt-4">
-                  <View className="flex flex-row mt-4 mx-4">
-                    <Image
-                      source={require("../../assets/spo2.png")}
-                      style={{ width: 28, height: 28, marginTop: 0 }}
-                    ></Image>
-                    <Text
-                      style={[styles.spo2Text, styles.spo2Typo]}
-                      className="mx-2"
-                    >
-                      <Text style={styles.s}>S</Text>
-                      <Text style={styles.p}>p</Text>
-                      <Text style={styles.s}>O</Text>
-                      <Text style={styles.p}>2</Text>
-                    </Text>
-                  </View>
-                  <View className="flex flex-row mt-4 mx-4">
-                    <Text className="ml-2 text-4xl font-bold text-[#0500ff] self-center">
-                      {pressImage === true
-                        ? 96
-                        : data === "" || data.temperature < 30
-                        ? "---"
-                        : data.o2}
-                    </Text>
-                    <Text className="ml-1 text-4xl font-normal text-[#0500ff] self-center">
-                      %
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.temperature} className="mt-4">
-                  <View className="flex flex-row mt-4 mx-4">
-                    <Image
-                      source={require("../../assets/temperatur.png")}
-                      style={{ width: 14.3, height: 28, marginTop: 0 }}
-                    ></Image>
-                    <Text className="mx-2 text-xl font-medium text-[#ff7a00] self-center">
-                      Temperature
-                    </Text>
-                  </View>
-                  <View className="flex flex-row mt-4 mx-4">
-                    <Text className="ml-2 text-4xl font-bold text-[#ff7a00] self-center">
-                      {pressImage === true
-                        ? 38
-                        : data === "" || data.temperature < 30
-                        ? "---"
-                        : data.temperature}
-                    </Text>
-                    <Text className="ml-1 text-4xl font-normal text-[#ff7a00] self-center">
-                      °C
-                    </Text>
-                  </View>
-                </View>
-              </View>
-              <View style={styles.condition} className="mt-4">
-                <View className="flex flex-col justify-between mx-4 h-full">
-                  <View>
-                    <View className="flex flex-row mt-4">
-                      <Image
-                        source={require("../../assets/Vector.png")}
-                        style={{ width: 28, height: 28, marginTop: 0 }}
-                      ></Image>
-                      <Text className="mx-3 text-2xl font-medium text-[#9747ff] self-center">
-                        Condition
-                      </Text>
-                    </View>
-                    <View className="flex flex-row mt-4">
-                      <Text
-                        className={`${
-                          pressImage !== true
-                            ? "text-xl"
-                            : "text-xl"
-                        } ${
-                          data.condition ===
-                            "Terdeteksi urgent, segera hubungi dokter!" ||
-                          pressImage === true
-                            ? "text-[#ff0000]"
-                            : "text-[#9747ff]"
-                        } font-bold self-center`}
-                      >
-                        {pressImage === true
-                          ? "Terdeteksi urgent, segera hubungi dokter!"
-                          : data === "" || data.temperature < 30
-                          ? "---"
-                          : data.condition}
-                      </Text>
-                    </View>
-                  </View>
-                  {hasContact && (
-                    <TouchableOpacity
-                      onPress={() => {
-                        router.push({
-                          pathname: "./chatRoom",
-                          params: {
-                            id: idParamedis,
-                            nama: namaParamedis,
-                            photoURL: photoURLParamedis,
-                          },
-                        });
-                      }}
-                      className="mb-4 w-1/2 h-[35px] bg-[#9747ff] flex flex-row justify-center rounded-xl self-end"
-                    >
-                      <Text
-                        className="text-lg text-textButton font-semibold text-center text-white"
-                        style={{ marginTop: 2 }}
-                      >
-                        Go To Chat
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-              
-              {/* Add some padding at the bottom to ensure scrollability */}
-              <View className="h-20" />
-            </View>
-          )}
         </View>
+
+        {mqttConnect ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.accent} />
+            <Text style={styles.loadingText}>
+              Connecting to monitoring system...
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.vitalSignsContainer}>
+            {/* Heart Rate Card */}
+            <View style={styles.vitalCardLarge}>
+              <View style={styles.vitalCardContent}>
+                <View style={styles.vitalCardHeader}>
+                  <Image
+                    source={require("../../assets/mdi_heart-outline.png")}
+                    style={styles.vitalIcon}
+                  />
+                  <Text
+                    style={[styles.vitalTitle, { color: Colors.heartRateText }]}
+                  >
+                    Heart Rate
+                  </Text>
+                </View>
+                <View style={styles.vitalValueContainer}>
+                  <Text
+                    style={[styles.vitalValue, { color: Colors.heartRateText }]}
+                  >
+                    {pressImage
+                      ? "90"
+                      : data === "" || data.temperature < 30
+                      ? "---"
+                      : data.heart}
+                  </Text>
+                  <Text
+                    style={[styles.vitalUnit, { color: Colors.heartRateText }]}
+                  >
+                    bpm
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.ecgContainer}>
+                <Pressable onPress={() => setFlag(!flag)}>
+                  <Image
+                    source={require("../../assets/Vector 1.png")}
+                    style={styles.ecgImage}
+                  />
+                </Pressable>
+              </View>
+            </View>
+
+            <View style={styles.vitalRowContainer}>
+              {/* SpO2 Card */}
+              <View
+                style={[
+                  styles.vitalCardSmall,
+                  { backgroundColor: Colors.spo2 },
+                ]}
+              >
+                <View style={styles.vitalCardHeader}>
+                  <Image
+                    source={require("../../assets/spo2.png")}
+                    style={styles.vitalIcon}
+                  />
+                  <Text style={[styles.vitalTitle, { color: Colors.spo2Text }]}>
+                    <Text style={{ fontSize: 22 }}>S</Text>
+                    <Text style={{ fontSize: 16 }}>p</Text>
+                    <Text style={{ fontSize: 22 }}>O</Text>
+                    <Text style={{ fontSize: 16 }}>2</Text>
+                  </Text>
+                </View>
+                <View style={styles.vitalValueContainer}>
+                  <Text style={[styles.vitalValue, { color: Colors.spo2Text }]}>
+                    {pressImage
+                      ? "96"
+                      : data === "" || data.temperature < 30
+                      ? "---"
+                      : data.o2}
+                  </Text>
+                  <Text style={[styles.vitalUnit, { color: Colors.spo2Text }]}>
+                    %
+                  </Text>
+                </View>
+              </View>
+
+              {/* Temperature Card */}
+              <View
+                style={[
+                  styles.vitalCardSmall,
+                  { backgroundColor: Colors.temperature },
+                ]}
+              >
+                <View style={styles.vitalCardHeader}>
+                  <Image
+                    source={require("../../assets/temperatur.png")}
+                    style={styles.vitalIcon}
+                  />
+                  <Text
+                    style={[
+                      styles.vitalTitle,
+                      { color: Colors.temperatureText },
+                    ]}
+                  >
+                    Temperature
+                  </Text>
+                </View>
+                <View style={styles.vitalValueContainer}>
+                  <Text
+                    style={[
+                      styles.vitalValue,
+                      { color: Colors.temperatureText },
+                    ]}
+                  >
+                    {pressImage
+                      ? "38.2"
+                      : data === "" || data.temperature < 30
+                      ? "---"
+                      : data.temperature}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.vitalUnit,
+                      { color: Colors.temperatureText },
+                    ]}
+                  >
+                    °C
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Condition Card */}
+            <View
+              style={[
+                styles.conditionCard,
+                { backgroundColor: Colors.condition },
+              ]}
+            >
+              <View style={styles.conditionContent}>
+                <View style={styles.vitalCardHeader}>
+                  <Image
+                    source={require("../../assets/Vector.png")}
+                    style={styles.vitalIcon}
+                  />
+                  <Text
+                    style={[styles.vitalTitle, { color: Colors.conditionText }]}
+                  >
+                    Condition
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.conditionText,
+                    {
+                      color:
+                        pressImage ||
+                        (data &&
+                          data.condition ===
+                            "Terdeteksi urgent, segera hubungi dokter!")
+                          ? Colors.warning
+                          : Colors.conditionText,
+                    },
+                  ]}
+                >
+                  {pressImage
+                    ? "Terdeteksi urgent, segera hubungi dokter!"
+                    : data === "" || data.temperature < 30
+                    ? "---"
+                    : data.condition}
+                </Text>
+              </View>
+
+              {hasContact && (
+                <TouchableOpacity
+                  style={styles.chatButton}
+                  onPress={() => {
+                    router.push({
+                      pathname: "./chatRoom",
+                      params: {
+                        id: idParamedis,
+                        nama: namaParamedis,
+                        photoURL: photoURLParamedis,
+                      },
+                    });
+                  }}
+                >
+                  <Text style={styles.chatButtonText}>Chat with Paramedic</Text>
+                  <FontAwesome
+                    name="wechat"
+                    size={18}
+                    color="white"
+                    style={{ marginLeft: 8 }}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* Footer space */}
+        <View style={{ height: 80 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  heartRate: {
-    shadowColor: "rgba(0, 0, 0, 0.25)",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowRadius: 4,
-    elevation: 4,
-    shadowOpacity: 1,
-    borderRadius: 10,
-    backgroundColor: "#ffeaea",
-    width: "100%",
-    height: 150,
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.primary,
   },
-  spo2: {
-    shadowColor: "rgba(0, 0, 0, 0.25)",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowRadius: 4,
-    elevation: 4,
-    shadowOpacity: 1,
-    borderRadius: 10,
-    backgroundColor: "#b8fbff",
-    width: "48%",
-    height: 150,
+  header: {
+    paddingTop: 10,
+    paddingBottom: 10,
+    backgroundColor: Colors.primary,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.primaryDark,
   },
-  temperature: {
-    shadowColor: "rgba(0, 0, 0, 0.25)",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowRadius: 4,
-    elevation: 4,
-    shadowOpacity: 1,
-    borderRadius: 10,
-    backgroundColor: "#f9ffb6",
-    width: "48%",
-    height: 150,
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
   },
-  s: {
-    fontSize: 24,
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: Colors.accent,
   },
-  p: {
+  signOutButton: {
+    padding: 8,
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  welcomeSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    marginBottom: 16,
+    ...Shadows.medium,
+  },
+  welcomeText: {
     fontSize: 16,
+    color: Colors.textSecondary,
   },
-  spo2Text: {
-    width: 112,
+  ahmsText: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: Colors.accent,
+    marginTop: 4,
   },
-  spo2Typo: {
-    textAlign: "left",
-    color: "#0500ff",
+  subtitleText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginTop: 4,
+    maxWidth: 200,
+  },
+  logo: {
+    width: 70,
+    height: 70,
+  },
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: Colors.textSecondary,
+    textAlign: "center",
+  },
+  vitalSignsContainer: {
+    padding: 16,
+  },
+  vitalCardLarge: {
+    flexDirection: "row",
+    backgroundColor: Colors.heartRate,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    ...Shadows.medium,
+  },
+  vitalCardContent: {
+    flex: 1,
+  },
+  vitalCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  vitalIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 8,
+  },
+  vitalTitle: {
+    fontSize: 18,
     fontWeight: "500",
   },
-  condition: {
-    shadowColor: "rgba(0, 0, 0, 0.25)",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowRadius: 4,
-    elevation: 4,
-    shadowOpacity: 1,
-    borderRadius: 10,
-    backgroundColor: "#febaff",
-    width: "100%",
-    height: 170,
+  vitalValueContainer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+  },
+  vitalValue: {
+    fontSize: 36,
+    fontWeight: "bold",
+  },
+  vitalUnit: {
+    fontSize: 16,
+    marginLeft: 4,
+    marginBottom: 6,
+  },
+  ecgContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  ecgImage: {
+    width: 130,
+    height: 108,
+  },
+  vitalRowContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  vitalCardSmall: {
+    width: "48%",
+    borderRadius: 16,
+    padding: 16,
+    ...Shadows.medium,
+  },
+  conditionCard: {
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    ...Shadows.medium,
+  },
+  conditionContent: {
+    marginBottom: 16,
+  },
+  conditionText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginTop: 8,
+  },
+  chatButton: {
+    backgroundColor: Colors.accent,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "flex-end",
+    ...Shadows.small,
+  },
+  chatButtonText: {
+    color: Colors.white,
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
 
-export default index;
+export default ConditionScreen;

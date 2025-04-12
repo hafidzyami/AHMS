@@ -12,12 +12,13 @@ import { getFirestore, initializeFirestore } from "firebase/firestore";
 const firebaseConfig = {
   apiKey: "AIzaSyB89VBU-mgv8RgUNxkXIG-TN5OkRpmPrOo",
   authDomain: "ahms-a493d.firebaseapp.com",
-  databaseURL: "https://ahms-a493d-default-rtdb.asia-southeast1.firebasedatabase.app",
+  databaseURL:
+    "https://ahms-a493d-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "ahms-a493d",
   storageBucket: "ahms-a493d.appspot.com",
   messagingSenderId: "604557704284",
   appId: "1:604557704284:web:a3c615e4f207ebade67a99",
-  measurementId: "G-RX4J4PHS5T"
+  measurementId: "G-RX4J4PHS5T",
 };
 
 export const FIREBASE_APP = initializeApp(firebaseConfig);
@@ -31,7 +32,7 @@ const AppLayout = () => {
     <Stack>
       <Stack.Screen name="(dokter)" options={{ headerShown: false }} />
       <Stack.Screen name="(paramedis)" options={{ headerShown: false }} />
-      <Stack.Screen name="AHMS" />
+      <Stack.Screen name="AIES" />
       <Stack.Screen name="Register" />
       <Stack.Screen name="Login" />
     </Stack>

@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -5,16 +6,25 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
-  Image,
+  StyleSheet,
+  StatusBar,
+  SafeAreaView,
+  Alert,
 } from "react-native";
-import React, { useEffect, useState } from "react";
-import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
-import { SafeAreaView } from "react-native-safe-area-context";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import {
+  collection,
+  getDocs,
+  getFirestore,
+  query,
+  where,
+} from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { MaterialIcons } from "@expo/vector-icons";
 import ChatList from "../../components/ChatList";
+import { Colors } from "../../components/UIComponents";
 
-const chat = () => {
+const ChatScreen = () => {
   const [users, setUsers] = useState<any>();
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
@@ -45,46 +55,153 @@ const chat = () => {
     fetchParamedis();
   }, []);
 
+  const handleSignOut = () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: () => signOut(getAuth()),
+      },
+    ]);
+  };
 
   return (
-    <View className="mt-8">
-      <View className="flex flex-row justify-between border-b-2 border-slate-400 bg-white h-[40px] px-4">
-        <Text className="text-xl font-bold mx-auto self-center">Chat</Text>
-        <TouchableOpacity
-          onPress={() => signOut(getAuth())}
-          className="self-center"
-        >
-          <FontAwesome size={28} name="sign-out" color="black" />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar backgroundColor={Colors.primary} barStyle="dark-content" />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Conversations</Text>
+        <TouchableOpacity onPress={handleSignOut} style={styles.signOutButton}>
+          <FontAwesome name="sign-out" size={24} color={Colors.accent} />
         </TouchableOpacity>
       </View>
-      <View className="pt-4 px-4 bg-[#fff] h-full">
+
+      {/* Body Content */}
+      <View style={styles.container}>
         {users ? (
-          <SafeAreaView>
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Paramedics</Text>
+              <Text style={styles.sectionCount}>{users.length}</Text>
+            </View>
+
             <ScrollView
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={[Colors.accent]}
+                  tintColor={Colors.accent}
+                />
               }
             >
-              <Text className="text-lg font-bold"> Daftar Dokter : </Text>
               <ChatList users={users} />
-              {/* <FlatList
-                key={"#"}
-                data={users}
-                renderItem={renderUsersItem}
-                keyExtractor={(item) => item.id}
-                nestedScrollEnabled={true}
-                scrollEnabled={false}
-              /> */}
+
+              {users.length === 0 && (
+                <View style={styles.emptyState}>
+                  <MaterialIcons
+                    name="chat-bubble-outline"
+                    size={64}
+                    color={Colors.gray300}
+                  />
+                  <Text style={styles.emptyStateText}>
+                    No paramedics available
+                  </Text>
+                  <Text style={styles.emptyStateSubtext}>
+                    Pull down to refresh
+                  </Text>
+                </View>
+              )}
             </ScrollView>
-          </SafeAreaView>
+          </>
         ) : (
-          <View>
-            <ActivityIndicator size="large" />
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.accent} />
+            <Text style={styles.loadingText}>Loading contacts...</Text>
           </View>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
-export default chat;
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.primary,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: Colors.primary,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.primaryDark,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: Colors.accent,
+  },
+  signOutButton: {
+    padding: 8,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: Colors.primaryLight,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.textPrimary,
+  },
+  sectionCount: {
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    backgroundColor: Colors.accent,
+    borderRadius: 12,
+    color: Colors.white,
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: Colors.textSecondary,
+  },
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 40,
+  },
+  emptyStateText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.textSecondary,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: Colors.gray400,
+    marginTop: 8,
+  },
+});
+
+export default ChatScreen;

@@ -11,13 +11,18 @@ const ParamedisLayout = () => {
     getAuth().onAuthStateChanged((user) => {
       setIsLoading(false);
       if (!user) {
-        router.replace("../AHMS");
+        router.replace("../AIES");
       }
     });
   }, []);
   if (isLoading) return <Text className="pt-32">Loading...</Text>;
   return (
-    <Tabs screenOptions={{ tabBarHideOnKeyboard : true, tabBarStyle : {position : 'absolute'}}}>
+    <Tabs
+      screenOptions={{
+        tabBarHideOnKeyboard: true,
+        tabBarStyle: { position: "absolute" },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "AHMS",
-    "slug": "AHMS",
+    "name": "AIES",
+    "slug": "AIES",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/iconAHMS.png",
@@ -24,7 +24,7 @@
       "package": "com.hafidzbandung.AHMS",
       "googleServicesFile": "./google-services.json",
       "softwareKeyboardLayoutMode": "pan",
-      "usesCleartextTraffic" : true
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -43,7 +43,7 @@
     "experiments": {
       "newArchEnabled": true
     },
-    "scheme": "ahms",
+    "scheme": "aies",
     "extra": {
       "router": {
         "origin": false

@@ -8,23 +8,26 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 const DokterLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
-  useEffect(()=>{
+  useEffect(() => {
     getAuth().onAuthStateChanged((user) => {
-      setIsLoading(false)
+      setIsLoading(false);
       if (!user) {
-        router.replace("../AHMS");
-      }
-      else{
-        if(!user?.displayName?.startsWith("dr.")){
-          router.replace("../(paramedis)/")
+        router.replace("../AIES");
+      } else {
+        if (!user?.displayName?.startsWith("dr.")) {
+          router.replace("../(paramedis)/");
         }
       }
     });
-
-  }, [])
+  }, []);
   if (isLoading) return <Text className="pt-32">Loading...</Text>;
   return (
-    <Tabs screenOptions={{ tabBarHideOnKeyboard : true, tabBarStyle : {position : 'absolute'}}}>
+    <Tabs
+      screenOptions={{
+        tabBarHideOnKeyboard: true,
+        tabBarStyle: { position: "absolute" },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
